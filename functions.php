@@ -539,13 +539,13 @@ function get_tag_attributes($tag, $attr = null) {
  * ```php
  * $attributes = ["href" => "/link.html?a=1&b=2", "class" => ["_left", "_clearfix"]];
  * $prepared = prepare_tag_attributes($attributes);
- * // $prepared => "href=\"/link.html?a=1&amp;b=2\" class=\"_left _clearfix\""
+ * // $prepared => 'href="/link.html?a=1&amp;b=2" class="_left _clearfix"'
  * ```
  *
  * ```php
  * $attributes = ["style" => ["margin-top" => "0", "display" => "flex"]];
  * $prepared = prepare_tag_attributes($attributes);
- * // $prepared => "style=\"margin-top:0;display:flex;\""
+ * // $prepared => "style='margin-top:0;display:flex;'"
  * ```
  */
 function prepare_tag_attributes($attributes) {
@@ -643,7 +643,12 @@ function xpath_callback_unwrap($tag) {
  * Accepts XPath queries for extracting tags and callback function for tag manipulating.
  *
  * ```
- * array|string xpath(string|DOMNode $xml, string $query = '/*', callable|int|null $callback = null, array $flags = []);
+ * array|string xpath(
+ *     string|DOMNode $xml,
+ *     string $query = '/*',
+ *     callable|int|null $callback = null,
+ *     array $flags = []
+ * );
  * ```
  *
  * ```php
