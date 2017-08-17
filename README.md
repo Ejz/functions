@@ -459,13 +459,13 @@ string prepare_tag_attributes(array $attributes);
 ```php
 $attributes = ["href" => "/link.html?a=1&b=2", "class" => ["_left", "_clearfix"]];
 $prepared = prepare_tag_attributes($attributes);
-// $prepared => "href=\"/link.html?a=1&amp;b=2\" class=\"_left _clearfix\""
+// $prepared => 'href="/link.html?a=1&amp;b=2" class="_left _clearfix"'
 ```
 
 ```php
 $attributes = ["style" => ["margin-top" => "0", "display" => "flex"]];
 $prepared = prepare_tag_attributes($attributes);
-// $prepared => "style=\"margin-top:0;display:flex;\""
+// $prepared => "style='margin-top:0;display:flex;'"
 ```
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L551-L570)
@@ -501,7 +501,12 @@ Wrapper around [DOMXPath](http://php.net/manual/en/class.domxpath.php).
 Accepts XPath queries for extracting tags and callback function for tag manipulating.
 
 ```
-array|string xpath(string|DOMNode $xml, string $query = '/*', callable|int|null $callback = null, array $flags = []);
+array|string xpath(
+    string|DOMNode $xml,
+    string $query = '/*',
+    callable|int|null $callback = null,
+    array $flags = []
+);
 ```
 
 ```php
@@ -526,7 +531,7 @@ Array
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L671-L763)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L676-L768)
 
 #### _expect
 
@@ -541,7 +546,7 @@ $a = 'string';
 _expect($a, 'string|null');
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L777-L793)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L782-L798)
 
 #### _log
 
@@ -554,7 +559,7 @@ If `E_USER_ERROR` is raised, exit with error code `1`.
 _log(string $msg, int $level = E_USER_NOTICE);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L805-L825)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L810-L830)
 
 #### _warn
 
@@ -564,7 +569,7 @@ Raise `E_USER_WARNING` with a message.
 _warn(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L834-L836)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L839-L841)
 
 #### _err
 
@@ -574,7 +579,7 @@ Raise `E_USER_ERROR` with a message. Exit with error code `1`.
 _err(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L845-L847)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L850-L852)
 
 ### Authors
 
