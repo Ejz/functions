@@ -678,11 +678,10 @@ function xpath($xml, $query = '/*', $callback = null, $flags = array()) {
     _expect($query, 'string');
     _expect($callback, 'callable|int|null');
     _expect($flags, 'assoc');
-    $default_flags = [
+    $flags = $flags + [
         'preserve_white_space' => false,
         'ignore_fix' => false,
     ];
-    $flags = $flags + $default_flags;
     if (is_string($xml) and !$flags['ignore_fix']) {
         // FIX HTML TO BE COMPATIBLE WITH XML
         $tags = 'area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr';
@@ -765,6 +764,194 @@ function xpath($xml, $query = '/*', $callback = null, $flags = array()) {
     foreach ($tags as $tag)
         $return[] = $doc->saveXML($tag);
     return func_num_args() === 1 ? implode('', $return) : $return;
+}
+
+/**
+ * All-in-one cURL function with multi threading support.
+ *
+ * ```
+ * array|string curl(array|string $urls, array $settings = []);
+ * ```
+ *
+
+ */
+function curl($urls, $settings = array()) {
+    $first = func_get_arg(0);
+    $return = array();
+    if (is_string($urls))
+        $urls = array($urls);
+    _expect($urls, 'array');
+    $urls = array_values(array_filter($urls, 'is_string'));
+    $urls = array_values(array_unique($urls));
+    $sett = $settings + [
+        'modify_content' => null,
+        'retry' => 0,
+        'verbose' => false,
+        'threads' => 3,
+        'sleep' => 5,
+        'delay' => 0,
+        'format' => (is_string($first) ? 'simple' : 'array'),
+        'checker' => null,
+    ];
+    if (is_numeric($sett['checker']))
+        $sett['checker'] = array(intval($sett['checker']));
+    if (!is_callable($sett['checker']) and is_array($_ = $sett['checker']))
+        $sett['checker'] = function ($url, $ch) use ($_) {
+            $info = curl_getinfo($ch);
+            $code = intval($info['http_code']);
+            return in_array($code, array_map('intval', $_));
+        };
+    $handleReturn = function (& $return) use ($sett) {
+        $fail = array();
+        foreach (array_keys($return) as $key) {
+            $value = & $return[$key];
+            if (!is_array($value) or !array_key_exists('ch', $value) or !is_resource($value['ch']))
+                continue;
+            $ch = $value['ch'];
+            $error = curl_error($ch);
+            $errno = curl_errno($ch);
+            // if ($error and in_array($errno, $sett['ignore_errors'])) $error = "";
+            if ($error or ($sett['checker'] and !($_ = $sett['checker']($value['url'], $ch)))) {
+                unset($return[$key]);
+                curl_close($ch);
+                $fail[$key] = $value['url'];
+                if ($sett['verbose']) {
+                    _warn("{$value['url']} .. ERR!" . ($error ? " ({$error})" : '') . ($_ ? " ({$_})" : ''));
+                }
+                continue;
+            }
+            $info = curl_getinfo($ch);
+            $content = curl_multi_getcontent($ch);
+            $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+            if ($sett['verbose'] and $value['url'] === $info['url'])
+                _log("{$value['url']} .. OK!");
+            elseif ($sett['verbose'])
+                _log("{$value['url']} .. {$info['url']} .. OK!");
+            if (intval($headerSize) > 0) {
+                $header = substr($content, 0, $headerSize);
+                $content = substr($content, $headerSize);
+                $headers = array();
+                $_ = explode("\r\n\r\n", $header);
+                for ($index = 0; $index < count($_) - 1; $index++)
+                    foreach (explode("\r\n", $_[$index]) as $i => $line)
+                        if ($i === 0) {
+                            $line = explode(' ', $line);
+                            $headers[$index]['http-code'] = $line[1];
+                        } else {
+                            $line = explode(': ', $line, 2);
+                            if (count($line) != 2) continue;
+                            list($k, $v) = $line;
+                            $headers[$index][strtolower($k)] = $v;
+                        }
+            } else $header = '';
+            $return[$key]['content'] = $content;
+            $return[$key]['header'] = $header;
+            if ($sett['modify_content'] and is_callable($sett['modify_content']))
+                $return[$key]['content'] = $sett['modify_content']($value['url'], $content);
+            $return[$key]['info'] = $info;
+            if (isset($headers)) $return[$key]['headers'] = $headers;
+            unset($value['ch']);
+            curl_close($ch);
+        }
+        return $fail;
+    };
+    $getCH = function ($url, $settings) {
+        $ch = curl_init();
+        $opts = array();
+        $setopt = function ($arr) use (& $ch, & $opts) {
+            $opts = array_replace($opts, $arr);
+            curl_setopt_array($ch, $arr);
+        };
+        $setopt(array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_USERAGENT => get_user_agent(),
+            CURLOPT_AUTOREFERER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_MAXREDIRS => 5,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_HEADER => true
+        ));
+        $acceptCallable = array(
+            CURLOPT_HEADERFUNCTION,
+            CURLOPT_PROGRESSFUNCTION,
+            CURLOPT_READFUNCTION,
+            CURLOPT_WRITEFUNCTION
+        );
+        if (defined("CURLOPT_PASSWDFUNCTION"))
+            $acceptCallable[] = CURLOPT_PASSWDFUNCTION;
+        if (is_string($url) and host($url))
+            $setopt(array(CURLOPT_URL => $url));
+        $constants = array_keys(get_defined_constants());
+        $constantsStrings = array_values(array_filter($constants, function ($constant) {
+            return strpos($constant, 'CURLOPT_') === 0;
+        }));
+        $constantsValues = array_map('constant', $constantsStrings);
+        foreach ($settings as $key => $value) {
+            if (in_array($key, $constantsStrings))
+                $key = constant($key);
+            if (!in_array($key, $constantsValues)) continue;
+            if (is_callable($value) and !in_array($key, $acceptCallable))
+                $value = $value($url);
+            $setopt(array($key => $value));
+        }
+        if (isset($opts[CURLOPT_URL]) and host($opts[CURLOPT_URL]))
+            return $ch;
+        return null;
+    };
+    do {
+        $fails = array();
+        while ($urls) {
+            if ($sett['threads'] == 1 or count($urls) == 1) {
+                $single = curl_init();
+                $multi = null;
+            } else {
+                $single = null;
+                $multi = curl_multi_init();
+            }
+            for ($i = 0; $i < $sett['threads'] and $urls; $i++) {
+                $key = key($urls);
+                $ch = $getCH($urls[$key], $settings);
+                if (is_null($ch)) {
+                    unset($urls[$key]);
+                    $i--;
+                    continue;
+                }
+                $return[$key] = array(
+                    'url' => $urls[$key],
+                    'ch' => $ch
+                );
+                if ($multi)
+                    curl_multi_add_handle($multi, $ch);
+                else $single = $ch;
+                unset($urls[$key]);
+            }
+            if ($multi) {
+                do {
+                    curl_multi_exec($multi, $running);
+                    usleep(200000);
+                } while ($running > 0);
+                curl_multi_close($multi);
+            } else {
+                curl_exec($single);
+            }
+            $fails[] = $handleReturn($return);
+            if ($urls and $sett['delay']) sleep($sett['delay']);
+        }
+        foreach ($fails as $fail)
+            foreach ($fail as $k => $v)
+                $urls[$k] = $v;
+    } while ($urls and $sett['retry']-- and sleep($sett['sleep']) === 0);
+    if ($sett['format'] === "simple") {
+        return implode("\n\n", array_values(array_column($return, 'content')));
+    } elseif ($sett['format'] === "array") {
+        return array_column($return, 'content', 'url');
+    } elseif ($sett['format'] === "complex") {
+        return array_column($return, null, 'url');
+    } else _err(__FUNCTION__ . ': Unknown return format!');
 }
 
 /**

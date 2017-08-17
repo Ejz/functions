@@ -1,6 +1,6 @@
 <?php
 
-class CoreTestXpath extends PHPUnit_Framework_TestCase {
+class XpathTest extends PHPUnit_Framework_TestCase {
     public function testXpath() {
         $xml = "<root> <img> 1 </img> </root>";
         list($_) = xpath($xml, '/*', null, ['ignore_fix' => true]);

@@ -1,6 +1,6 @@
 <?php
 
-class CoreTestSimple extends PHPUnit_Framework_TestCase {
+class CommonTest extends PHPUnit_Framework_TestCase {
     public function testEsc() {
         $s = "<&>'\"";
         $this->assertEquals(esc($s), "&lt;&amp;&gt;'\"");
