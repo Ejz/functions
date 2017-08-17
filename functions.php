@@ -845,7 +845,3 @@ function _warn($msg) {
 function _err($msg) {
     _log($msg, E_USER_ERROR);
 }
-
-$xml = "<root><a class=\"one findme two\">1</a><b>2</b><c>3</c></root>";
-$xml = xpath($xml, '//*[class(findme)]');
-print_r($xml);

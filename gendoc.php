@@ -33,4 +33,4 @@ $readme = file_get_contents($file = 'README.md.tpl');
 $readme = preg_replace_callback('~(### Contents).*(### Authors)~s', function ($match) use ($output, $list) {
     return $match[1] . "\n\n" . $list . "\n\n----\n\n" . $output . "\n\n" . $match[2];
 }, $readme);
-file_put_contents($file, $readme);
+file_put_contents('README.md', $readme);
