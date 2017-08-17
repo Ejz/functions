@@ -5,13 +5,17 @@ branch="$TRAVIS_BRANCH"
 
 cd "`dirname "$0"`"
 
-function inc_ver() {
+function ver_inc() {
     script='NF==1{print ++$NF};NF>1{if(length($NF+1)>length($NF))$(NF-1)++;$NF=sprintf("%0*d",length($NF),($NF+1)%(10^length($NF)));print}'
     echo "$1" | awk -F. -v OFS=. "$script"
 }
 
-function inc_ver_rc() {
+function ver_inc_rc() {
     echo "$1" | perl -pe 's/RC(\d+)$/RC.($1+1)/e'
+}
+
+function ver_rm_rc() {
+    echo "$1" | perl -pe 's/-RC(\d+)$//e'
 }
 
 # Pull requests and commits to not master branch just build, no deploy!!!
@@ -33,11 +37,21 @@ tag=`git tag | grep -P '^v1\.\d+\.\d+' | tail -n 1`
 if [ -z "$tag" ]; then
     ntag="v1.0.0"
 elif echo "$tag" | grep -qP -- '-RC\d+$'; then
-    ntag=`inc_ver_rc "$tag"`
+    if echo "$message" | grep -qP '\[release\]'; then
+        ntag=`ver_rm_rc "$tag"`
+    else
+        ntag=`ver_inc_rc "$tag"`
+    fi
 else
-    ntag=`inc_ver "$tag"`
-    ntag="${ntag}-RC1"
+    if echo "$message" | grep -qP '\[release\]'; then
+        ntag=`ver_inc "$tag"`
+    else
+        ntag=`ver_inc "$tag"`
+        ntag="${ntag}-RC1"
+    fi
 fi
-echo "Add ${ntag} tag!"
+echo "Commit message : ${message}"
+echo "Last tag : ${tag}"
+echo "Next tag : ${ntag}"
 git tag -a "$ntag" -m "$ntag"
 git push --tags
