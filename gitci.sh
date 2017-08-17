@@ -10,29 +10,34 @@ function inc_ver() {
     echo "$1" | awk -F. -v OFS=. "$script"
 }
 
+function inc_ver_rc() {
+    echo "$1" | perl -pe 's/RC(\d+)$/RC.($1+1)/e'
+}
+
 # Pull requests and commits to not master branch just build, no deploy!!!
 if [ "$TRAVIS_PULL_REQUEST" != "false" -o "$branch" != "master" ]; then
     echo "SKIP!"
     exit 0
 fi
 
-git diff --quiet && exit 0
 git checkout "$branch"
 t="https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
 git remote set-url origin "$t"
 git status
-git add "$1"
-git commit -m "$2"
+if ! git diff --quiet; then
+    git add "$1"
+    git commit -m "$2"
+    git push origin "$branch"
+fi
 tag=`git tag | grep -P '^v1\.\d+\.\d+' | tail -n 1`
 if [ -z "$tag" ]; then
     ntag="v1.0.0"
 elif echo "$tag" | grep -qP -- '-RC\d+$'; then
-    ntag=`inc_ver "$tag"`
+    ntag=`inc_ver_rc "$tag"`
 else
     ntag=`inc_ver "$tag"`
     ntag="${ntag}-RC1"
 fi
 echo "Add ${ntag} tag!"
 git tag -a "$ntag" -m "$ntag"
-git push origin "$branch"
 git push --tags
