@@ -40,6 +40,7 @@ PHP 5.5 or above (with cURL and GD library installed).
 - [prepare_tag_attributes](#prepare_tag_attributes)
 - [realurl](#realurl)
 - [xpath](#xpath)
+- [curl](#curl)
 - [_expect](#_expect)
 - [_log](#_log)
 - [_warn](#_warn)
@@ -531,7 +532,18 @@ Array
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L676-L768)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L676-L767)
+
+#### curl
+
+All-in-one cURL function with multi threading support.
+
+```
+array|string curl(array|string $urls, array $settings = []);
+```
+
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L778-L955)
 
 #### _expect
 
@@ -546,7 +558,7 @@ $a = 'string';
 _expect($a, 'string|null');
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L782-L798)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L969-L985)
 
 #### _log
 
@@ -559,7 +571,7 @@ If `E_USER_ERROR` is raised, exit with error code `1`.
 _log(string $msg, int $level = E_USER_NOTICE);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L810-L830)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L997-L1017)
 
 #### _warn
 
@@ -569,7 +581,7 @@ Raise `E_USER_WARNING` with a message.
 _warn(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L839-L841)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1026-L1028)
 
 #### _err
 
@@ -579,7 +591,7 @@ Raise `E_USER_ERROR` with a message. Exit with error code `1`.
 _err(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L850-L852)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1037-L1039)
 
 ### Authors
 
