@@ -1,0 +1,15 @@
+dist: trusty
+language: php
+sudo: required
+
+php:
+  - 5.6
+
+services:
+  - docker
+
+script: ./deploy.sh && phpunit && php ./gendoc.php && ./gitci.sh "README.md" "Update README.md [skip ci]"
+
+env:
+  global:
+    - MARIADB_HOST="localhost" MARIADB_USER="user" MARIADB_PASS="pass" MARIADB_DB="db"
