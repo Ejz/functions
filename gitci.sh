@@ -5,6 +5,12 @@ branch="$TRAVIS_BRANCH"
 
 cd "`dirname "$0"`"
 
+# Pull requests and commits just build, no deploy!!!
+if [ "$TRAVIS_PULL_REQUEST" != "false" -o "$TRAVIS_BRANCH" != "master" ]; then
+    echo "SKIP!"
+    exit 0
+fi
+
 git diff --quiet && exit 0
 git checkout "$branch"
 t="https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
