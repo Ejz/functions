@@ -1,0 +1,25 @@
+{
+    "name": "ejz/functions",
+    "description": "Collections of useful PHP functions.",
+    "keywords": ["ejz", "functions", "helpers", "utils"],
+    "license": "WTFPL",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Ejz/functions"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Ejz",
+            "email": "ejz@ya.ru",
+            "homepage": "https://ejz.ru"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0"
+    },
+    "autoload": {
+        "files": ["functions.php"]
+    }
+}
