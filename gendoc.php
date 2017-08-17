@@ -1,9 +1,9 @@
 <?php
 
-include('core.php');
+include('functions.php');
 
 $output = array();
-$content = file_get_contents('core.php');
+$content = file_get_contents('functions.php');
 preg_match_all('~^function\s+(.*?)\(~m', $content, $matches);
 $matches = $matches[1];
 
@@ -23,14 +23,14 @@ foreach ($matches as $function) {
     $output[] = (
         "#### {$function}\n\n" .
         preg_replace('~^\s*\* ?~m', '', $doc) .
-        ("\n\n[![to top](totop.png)](#functions) [![view source](viewsource.png)](core.php#L{$lstart}-L{$lend})")
+        ("\n\n[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L{$lstart}-L{$lend})")
     );
 }
 
 $output = implode("\n\n", $output);
 $list = implode("\n", $list);
-$readme = file_get_contents($file = 'README.md');
-$readme = preg_replace_callback('~(### Functions).*(### Authors)~s', function ($match) use ($output, $list) {
+$readme = file_get_contents($file = 'README.md.tpl');
+$readme = preg_replace_callback('~(### Contents).*(### Authors)~s', function ($match) use ($output, $list) {
     return $match[1] . "\n\n" . $list . "\n\n----\n\n" . $output . "\n\n" . $match[2];
 }, $readme);
 file_put_contents($file, $readme);
