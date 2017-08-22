@@ -2,8 +2,13 @@
 
 define('SQL_FORMAT_DATE', 'Y-m-d');
 define('SQL_FORMAT_DATETIME', 'Y-m-d H:i:s');
-define('EXPECT_FUNCTION_ERR_MSG', "Invalid type: expected %expected, but given %given.");
+define('EXPECT_FUNCTION_ERR_MSG', "Invalid type: expected %expected, but given %given. Backtrace: %debug");
 define('LOG_FUNCTION_CONSOLE_FORMAT', "[%type] %now ~ %msg");
+define('GETOPTS_FUNCTION_INVALID', "Invalid argument %arg!");
+define('GETOPTS_FUNCTION_UNKNOWN', "Unknown argument %arg!");
+define('GETOPTS_FUNCTION_NOVALUE', "No value for argument %arg!");
+define('GETOPTS_FUNCTION_VALUE_EXPECTED', "Expected value for %arg, given another argument %given!");
+define('GETOPTS_FUNCTION_EXPECT_NOVALUE', "Expect no value for argument %arg!");
 
 /**
  * Encode/decode HTML chars in given string: `>`, `<` and `&`. 
@@ -372,10 +377,9 @@ function mt_shuffle(& $array, $seed = null) {
  * ```
  */
 function file_get_ext($file) {
-    $info = pathinfo($file);
-    if (isset($info['extension']))
-        return strtolower($info['extension']);
-    return '';
+    preg_match('~\.([a-z0-9A-Z]{1,5})$~', $file, $match);
+    if (!$match) return '';
+    return strtolower($match[1]);
 }
 
 /**
@@ -408,10 +412,8 @@ function file_get_ext($file) {
 function file_get_name($file) {
     if (substr($file, -1) === '/')
         return '';
-    $info = pathinfo($file);
-    if (isset($info['filename']))
-        return $info['filename'];
-    return '';
+    $file = basename($file);
+    return preg_replace('~\.([a-z0-9A-Z]{1,5})$~', '', $file);
 }
 
 /**
@@ -773,7 +775,14 @@ function xpath($xml, $query = '/*', $callback = null, $flags = array()) {
  * array|string curl(array|string $urls, array $settings = []);
  * ```
  *
-
+ * ```php
+ * $content = curl("http://github.com/");
+ * preg_match("~<title>(.*?)</title>~", $content, $title);
+ * echo $title[1];
+ * // => "The world&#39;s leading software development platform · GitHub"
+ * ```
+ *
+ * For more examples, please, refer to [curl.md](docs/curl.md).
  */
 function curl($urls, $settings = array()) {
     $first = func_get_arg(0);
@@ -955,6 +964,512 @@ function curl($urls, $settings = array()) {
 }
 
 /**
+ * Get options from command line. In case of error returns error string.
+ *
+ * ```
+ * array|string getopts(array $opts, array|null $argv = null);
+ * ```
+ *
+ * ```php
+ * $opts = getopts([
+ *     'a' => false,     // short, no value
+ *     'b' => true,      // short, with value
+ *     'help' => false,  // long, no value
+ *     'filter' => true, // long, with value
+ * ], explode(' ', './script.sh -ab1 arg --help --filter=value'));
+ * var_dump($opts);
+ * ```
+ *
+ * Output:
+ *
+ * ```
+ * array(6) {
+ *   [0] =>
+ *   string(11) "./script.sh"
+ *   'a' =>
+ *   bool(true)
+ *   'b' =>
+ *   string(1) "1"
+ *   [1] =>
+ *   string(3) "arg"
+ *   'help' =>
+ *   bool(true)
+ *   'filter' =>
+ *   string(5) "value"
+ * }
+ * ```
+ *
+ * For more examples, please, refer to [getopts.md](docs/getopts.md).
+ */
+function getopts($opts, $argv = null) {
+    _expect($opts, 'assoc');
+    _expect($argv, 'array|null');
+    $argv = is_null($argv) ? $_SERVER['argv'] : $argv;
+    $collect = array();
+    $next = null;
+    $raw = false;
+    foreach ($opts as & $opt) {
+        if (is_bool($opt)) $opt = ['value' => $opt];
+        $opt = $opt + [
+            'value' => false,
+            'multiple' => false,
+        ];
+    }
+    for ($i = 0; $i < count($argv); $i++) {
+        $arg = $argv[$i];
+        if ($arg === '--') {
+            $raw = true;
+            continue;
+        }
+        if ($next and $raw) {
+            $collect[$next] = $arg;
+            $next = null;
+            continue;
+        }
+        if ($raw) {
+            $collect[] = $arg;
+            continue;
+        }
+        if ($arg and $arg[0] === '-' and $next) {
+            return str_replace(
+                ['%arg', '%given'],
+                [$next, $arg],
+                GETOPTS_FUNCTION_VALUE_EXPECTED
+            );
+        }
+        if ($next and $opts[$next]['multiple']) {
+            if (!isset($collect[$next])) $collect[$next] = [];
+            $collect[$next][] = $arg;
+            $next = null;
+            continue;
+        }
+        if ($next) {
+            $collect[$next] = $arg;
+            $next = null;
+            continue;
+        }
+        // Short or long without value
+        if (preg_match('~^-([a-zA-Z0-9])$~', $arg, $match) or preg_match('~^--([a-z0-9][a-z0-9-]+)$~', $arg, $match)) {
+            $arg = $match[1];
+            if (!isset($opts[$arg]))
+                return str_replace(
+                    ['%arg'],
+                    [$arg],
+                    GETOPTS_FUNCTION_UNKNOWN
+                );
+            if ($opts[$arg]['value']) {
+                $next = $arg;
+            } elseif ($opts[$arg]['multiple']) {
+                if (!isset($collect[$arg])) $collect[$arg] = [];
+                $collect[$arg][] = true;
+            } else {
+                $collect[$arg] = true;
+            }
+            continue;
+        }
+        // Split long
+        if (preg_match('~^--([a-z0-9-]+)=(.*)$~', $arg, $match)) {
+            if (isset($opts[$match[1]]) and !$opts[$match[1]]['value'])
+                return str_replace('%arg', $match[1], GETOPTS_FUNCTION_EXPECT_NOVALUE);
+            array_splice($argv, $i, 1, array('--' . $match[1], $match[2]));
+            $i--;
+            continue;
+        }
+        // Split short
+        if (preg_match('~^-([a-z])(.*)$~', $arg, $match)) {
+            $arg = $match[1];
+            if (!isset($opts[$arg]))
+                return str_replace('%arg', $arg, GETOPTS_FUNCTION_UNKNOWN);
+            array_splice($argv, $i, 1, array('-' . $match[1], ($opts[$arg]['value'] ? '' : '-') . $match[2]));
+            $i--;
+            continue;
+        }
+        // Invalid args
+        if ($arg and $arg[0] === '-')
+            return str_replace('%arg', $arg, GETOPTS_FUNCTION_INVALID);
+        $collect[] = $arg;
+    }
+    if ($next) return str_replace('%arg', $next, GETOPTS_FUNCTION_NOVALUE);
+    return $collect;
+}
+
+/**
+ * Help function for saving data in storage.
+ *
+ * ```
+ * string|null to_storage(string $file, array $settings = array());
+ * ```
+ *
+ * ```php
+ * $content = 'foo';
+ * $tmp = rtrim(`mktemp`);
+ * $file = to_storage($tmp);
+ * // $file => "/tmp/tmp.qmviqzrrd1"
+ * ```
+ *
+ * ```php
+ * $content = 'foo';
+ * $tmp = rtrim(`mktemp`);
+ * $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
+ * // $file => "/tmp/ac/bd/tmp.jwueqsppoz.txt"
+ * ```
+ *
+ * For more examples, please, refer to [to_storage.md](docs/to_storage.md).
+ */
+function to_storage($file, $settings = array()) {
+    _expect($file, 'string');
+    _expect($settings, 'assoc');
+    if (!is_file($file)) {
+        _warn(__FUNCTION__ . ": Invalid file ~ {$file}!");
+        return null;
+    }
+    $settings = $settings + [
+        'delete' => false,
+        'check_duplicate' => false,
+        'dir' => sys_get_temp_dir(),
+        'ext' => file_get_ext($file),
+        'name' => file_get_name($file),
+        'shards' => 0,
+    ];
+    if (!is_dir($settings['dir']))
+        return _warn(__FUNCTION__ . ": Invalid directory ~ {$settings['dir']}!");
+    if ($settings['shards'] > 2) $settings['shards'] = 2;
+    $md5 = md5_file($file);
+    $settings['dir'] = rtrim($settings['dir'], '/');
+    if ($settings['shards'])
+        $settings['dir'] .= preg_replace('~^(..)(..).*~', $settings['shards'] > 1 ? '/$1/$2' : '/$1', $md5);
+    exec('mkdir -p ' . escapeshellarg($settings['dir']));
+    $settings['name'] = normalize($settings['name'], '.-_');
+    if (!$settings['name']) $settings['name'] = mt_rand();
+    if ($settings['check_duplicate']) {
+        foreach (scandir($settings['dir']) as $f) {
+            if ($f === '.' or $f === '..') continue;
+            if (md5_file($_ = $settings['dir'] . '/' . $f) === $md5) {
+                if ($settings['delete']) unlink($file);
+                return $_;
+            }
+        }
+    }
+    $ext = ($settings['ext'] ? ".{$settings['ext']}" : "");
+    $target = $settings['dir'] . '/' . $settings['name'] . $ext;
+    $i = 0;
+    while (file_exists($target) and md5_file($target) != $md5) {
+        $target = preg_replace($i ? '~-\d+(\.?\w+)$~' : '~(\.?\w+)$~', '-' . ($i) . '$1', $target);
+    }
+    if (!file_exists($target)) {
+        copy($file, $target);
+        if ($settings['delete']) unlink($file);
+    }
+    return $target;
+}
+
+/**
+ * Latinize string. Set `$ru` to `true` in order to latinize also cyrillic characters.
+ *
+ * ```
+ * string latinize($string, $ru = false);
+ * ```
+ *
+ * ```php
+ * echo latinize('Màl Śir');
+ * // => "Mal Sir"
+ * ```
+ *
+ * ```php
+ * echo latinize('привет мир', $ru = true);
+ * // => "privet mir"
+ * ```
+ */
+function latinize($string, $ru = false) {
+    static $letters = null;
+    if ($letters === null) {
+        $letters = <<<END
+            `İ¡¿ÀàÁáÂâÃãÄäÅåÆæçÇÈèÉéÊêËëÌìÍíÎîÏïÐððÑñÒòÓóÔôÕõöÖØøÙùÚúÛûÜüÝýÞþÿŸāĀĂ
+            'I!?AaAaAaAaAaAaAacCEeEeEeEeIiIiIiIiDdoNnOoOoOoOooOOoUuUuUuUuYyBbyYaAA
+
+            ăąĄćĆĈĉĊċčČďĎĐđēĒĔĕėĖęĘĘěĚĜĝğĞĠġģĢĤĥĦħĨĩīĪĪĬĭįĮıĴĵķĶĶĸĹĺļĻĽľĿŀłŁńŃņŅňŇ
+            aaAcCCcCccCdDDdeEEeeEeeEeEGggGGggGHhHhIiiiIIiiIiJjkkKkLllLLlLllLnNnNnN
+
+            ŉŊŋŌōŎŏŐőŒœŔŕŗřŘśŚŜŝşŞšŠŢţťŤŦŧŨũūŪŪŬŭůŮŰűųŲŴŵŶŷźŹżŻžŽƠơƯưǼǽȘșȚțəƏΐάΆέΈ
+            nNnOoOoOoOoRrrrRsSSssSsSTttTTtUuuuUUuuUUuuUWwYyzZzZzZOoUuAaSsTteEiaAeE
+
+            ήΉίΊΰαΑβΒγΓδΔεΕζΖηΗθΘιΙκΚλΛμΜνΝξΞοΟπΠρΡςσΣτΤυΥφΦχΧωΩϊΪϋΫόΌύΎώΏјЈћЋ
+            hHiIyaAbBgGdDeEzZhH88iIkKlLmMnN33oOpPrRssStTyYfFxXwWiIyYoOyYwWjjcC
+
+            أبتجحدرزسصضطفقكلمنهوي
+            abtghdrzssdtfkklmnhoy
+
+            ẀẁẂẃẄẅẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎ
+            WwWwWwAaAaAaAaAaAaAaAaAaAaAaAaEeEeEeEeEeEeEeEeIiIiOoO
+
+            ỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ–—‘’“”•
+            oOoOoOoOoOoOoOoOoOoOoUuUuUuUuUuUuUuYyYyYyYy--''""-
+END;
+        $letters = nsplit($letters);
+    }
+    $split = function ($_) { return preg_split('/(?<!^)(?!$)/u', $_); };
+    $n = count($letters) / 2;
+    for ($i = 0; $i < $n; $i++)
+        $string = strtr(
+            $string,
+            array_combine($split($letters[$i * 2]), $split($letters[$i * 2 + 1]))
+        );
+    $string = strtr($string, [
+        'خ' => 'kh', 'ذ' => 'th', 'ش' => 'sh', 'ظ' => 'th',
+        'ع' => 'aa', 'غ' => 'gh', 'ψ' => 'ps', 'Ψ' => 'PS',
+        'đ' => 'dj', 'Đ' => 'Dj', 'ß' => 'ss', 'ẞ' => 'SS',
+        'Ä' => 'Ae', 'ä' => 'ae', 'Æ' => 'AE', 'æ' => 'ae',
+        'Ö' => 'Oe', 'ö' => 'oe', 'Ü' => 'Ue', 'ü' => 'ue',
+        'Þ' => 'TH', 'þ' => 'th', 'ђ' => 'dj', 'Ђ' => 'Dj',
+        'љ' => 'lj', 'Љ' => 'Lj', 'њ' => 'nj', 'Њ' => 'Nj',
+        'џ' => 'dz', 'Џ' => 'Dz', 'ث' => 'th', '…' => '...',
+    ]);
+    if ($ru) {
+        $string = strtr($string, [
+            'А' => 'A', 'а' => 'a',
+            'Б' => 'B', 'б' => 'b',
+            'В' => 'V', 'в' => 'v',
+            'Г' => 'G', 'г' => 'g',
+            'Д' => 'D', 'д' => 'd',
+            'Е' => 'E', 'е' => 'e',
+            'Ё' => 'E', 'ё' => 'e',
+            'Ж' => 'Zh', 'ж' => 'zh',
+            'З' => 'Z', 'з' => 'z',
+            'И' => 'I', 'и' => 'i',
+            'Й' => 'I', 'й' => 'i',
+            'К' => 'K', 'к' => 'k',
+            'Л' => 'L', 'л' => 'l',
+            'М' => 'M', 'м' => 'm',
+            'Н' => 'N', 'н' => 'n',
+            'О' => 'O', 'о' => 'o',
+            'П' => 'P', 'п' => 'p',
+            'Р' => 'R', 'р' => 'r',
+            'С' => 'S', 'с' => 's',
+            'Т' => 'T', 'т' => 't',
+            'У' => 'U', 'у' => 'u',
+            'Ф' => 'F', 'ф' => 'f',
+            'Х' => 'Kh', 'х' => 'kh',
+            'Ц' => 'Tc', 'ц' => 'tc',
+            'Ч' => 'Ch', 'ч' => 'ch',
+            'Ш' => 'Sh', 'ш' => 'sh',
+            'Щ' => 'Shch', 'щ' => 'shch',
+            'Ъ' => '', 'ъ' => '',
+            'Ы' => 'Y', 'ы' => 'y',
+            'Ь' => '', 'ь' => '',
+            'Э' => 'E', 'э' => 'e',
+            'Ю' => 'Iu', 'ю' => 'iu',
+            'Я' => 'Ia', 'я' => 'ia',
+            'Є' => 'Ye', 'І' => 'I', 'Ї' => 'Yi', 'Ґ' => 'G',
+            'є' => 'ye', 'і' => 'i', 'ї' => 'yi', 'ґ' => 'g',
+        ]);
+    }
+    return $string;
+}
+
+/**
+ * Normalize string by removing non-English chars. Can add some extra chars (using `$extra`) and cyrillic chars (using `$ru`).
+ *
+ * ```
+ * string normalize($string, $extra = "", $ru = false);
+ * ```
+ *
+ * ```php
+ * echo normalize("Hello, world!");
+ * // => "hello world"
+ * ```
+ *
+ * ```php
+ * echo normalize("John's hat!", $extra = "'");
+ * // => "john's hat"
+ * ```
+ *
+ * ```php
+ * echo normalize("Привет, мир!", $extra = "", $ru = true);
+ * // => "привет мир"
+ * ```
+ */
+function normalize($string, $extra = '', $ru = false) {
+    $string = mb_strtolower($string, 'utf-8');
+    $extra = preg_quote($extra, '|');
+    if ($ru) {
+        $string = strtr($string, array('ё' => 'е'));
+        $extra .= 'а-я';
+    }
+    $regex = "|[^a-z0-9{$extra}]|u";
+    $string = preg_replace($regex, ' ', $string);
+    $string = preg_replace('|\s+|', ' ', $string);
+    $string = trim($string);
+    return $string;
+}
+
+/**
+ * Universal entrypoint for config get/set operations.
+ *
+ * ```
+ * ; config.ini
+ *
+ * [global]
+ * debug = 1
+ * ```
+ *
+ * ```php
+ * $config = parse_ini_file("config.ini", true);
+ * config(".", $config);
+ * $global = config("global");
+ * // $global => ["debug" => "1"]
+ * $debug = config("global.debug");
+ * // $debug => "1"
+ * ```
+ */
+function config() {
+    static $config = array();
+    $n = func_num_args();
+    if ($n === 0)
+        return $config;
+    if ($n > 2) return;
+    $first = func_get_arg(0);
+    if ($n === 1 and $first === ".")
+        return $config;
+    if ($n === 2 and $first === ".") {
+        $config = func_get_arg(1);
+        return;
+    }
+    $first = ltrim($first, '.');
+    if (!$first) return;
+    $first = explode('.', $first);
+    if (count($first) > 2) return;
+    $fnmatch0 = (strpos($first[0], '*') !== false or strpos($first[0], '?') !== false);
+    $fnmatch = ($fnmatch0 or strpos(implode('', $first), '*') !== false or strpos(implode('', $first), '?') !== false);
+    if ($fnmatch and $n === 2) return;
+    if ($fnmatch0) {
+        $return = array();
+        foreach (array_keys($config) as $key) {
+            if (!fnmatch($first[0], $key)) continue;
+            $args = array(count($first) === 2 ? "{$key}.{$first[1]}" : $key);
+            $return[$key] = call_user_func_array(__FUNCTION__, $args);
+            if (is_null($return[$key])) unset($return[$key]);
+            elseif (!is_array($return[$key]))
+                $return[$key] = array($first[1] => $return[$key]);
+        }
+        return $return;
+    }
+    if ($fnmatch) {
+        $return = array();
+        if (!isset($config[$first[0]]) or !is_array($config[$first[0]]))
+            return $return;
+        foreach (array_keys($config[$first[0]]) as $key) {
+            if (!fnmatch($first[1], $key)) continue;
+            $args = array("{$first[0]}.{$key}");
+            $return[$key] = call_user_func_array(__FUNCTION__, $args);
+            if (is_null($return[$key])) unset($return[$key]);
+        }
+        return $return;
+    }
+    if ($n === 1 and count($_ = $first) === 1) {
+        return isset($config[$_[0]]) ? $config[$_[0]] : null;
+    }
+    if ($n === 2 and count($_ = $first) === 1) {
+        $value = func_get_arg(1);
+        if (!is_null($value))
+            $config[$_[0]] = $value;
+        else unset($config[$_[0]]);
+        return;
+    }
+    if ($n === 1 and count($_ = $first) === 2)
+        return isset($config[$_[0]][$_[1]]) ? $config[$_[0]][$_[1]] : null;
+    if ($n === 2 and count($_ = $first) === 2) {
+        $value = func_get_arg(1);
+        if (!is_null($value)) {
+            if (!isset($config[$_[0]]))
+                $config[$_[0]] = array();
+            if (substr($_[1], -2) === '[]') {
+                $_[1] = substr($_[1], 0, -2);
+                if (!isset($config[$_[0]][$_[1]]))
+                    $config[$_[0]][$_[1]] = array();
+                $config[$_[0]][$_[1]][] = $value;
+            } else $config[$_[0]][$_[1]] = $value;
+        } else {
+            unset($config[$_[0]][$_[1]]);
+        }
+        return;
+    }
+    return;
+}
+
+/**
+ * Correctly saves value to INI file (or creates new one).
+ *
+ * ```
+ * bool ini_file_set($file, $key, $value);
+ * ```
+ *
+ * ```php
+ * $return = ini_file_set("config.ini", "global.debug", "0");
+ * // $return => true
+ * echo file_get_contents("config.ini");
+ * ```
+ *
+ * Output:
+ *
+ * ```
+ * ; <?php exit();
+ * ; /*
+ *
+ * [global]
+ * debug = 0
+ *
+ * ; *\/
+ * ```
+ */
+function ini_file_set($file, $key, $value) {
+    $key = explode('.', $key);
+    if (count($key) == 1 and is_assoc($value)) {
+        $return = true;
+        foreach ($value as $k => $v)
+            $return = ($return and (call_user_func_array(__FUNCTION__, [$file, "{$key[0]}.{$k}", $v])));
+        return $return;
+    }
+    if (count($key) != 2 or !$key[0] or !$key[1])
+        return false;
+    if (!is_file($file))
+        $ini = array();
+    else $ini = parse_ini_file($file, true);
+    if (!array_key_exists($key[0], $ini))
+        $ini[$key[0]] = array();
+    if (is_null($value)) {
+        unset($ini[$key[0]][$key[1]]);
+    } else {
+        $ini[$key[0]][$key[1]] = $value;
+    }
+    $save = array();
+    $echo = function($_) {
+        if (is_numeric($_)) return $_;
+        if (is_bool($_)) return $_ ? 1 : 0;
+        if (is_null($_)) return 0;
+        if (ctype_alnum(str_replace(['.', '_', '-'], '', $_))) return $_;
+        if ($_ === "") return "";
+        return "'{$_}'";
+    };
+    foreach ($ini as $key => $val) {
+        $save[] = sprintf("[%s]", $key);
+        foreach ($val as $_key => $_val)
+            if (is_array($_val)) {
+                foreach ($_val as $_)
+                    $save[] = sprintf("%s[] = %s", $_key, $echo($_));
+            } else {
+                $save[] = sprintf("%s = %s", $_key, $echo($_val));
+            }
+        $save[] = "\n";
+    }
+    $head = "; <?php exit();\n; /*";
+    $tail = "; {$file} */";
+    $save = sprintf("%s\n\n%s\n\n%s\n", $head, trim(implode("\n", $save)), $tail);
+    $save = str_replace("\n\n\n", "\n\n", $save);
+    file_put_contents($file, $save);
+    return true;
+}
+
+/**
  * Raise an error, if given variable does not match type.
  *
  * ```
@@ -975,11 +1490,18 @@ function _expect($var, $types) {
         if ($flag ? $function($var) : is_a($var, $type)) return;
         $expected[] = $type . ($flag ? '' : ' object');
     }
+    $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+    $debug = array_slice($debug, 1);
+    $debug = array_map(function ($arg) use (& $first) {
+        $file = basename($arg['file']);
+        return "{$arg['function']}@{$file}:{$arg['line']}";
+    }, $debug);
+    $debug = implode(', ', $debug);
     $expected = implode(', ', $expected);
     $given = (is_object($var) ? get_class($var) . ' ' : '') . gettype($var);
     _err(str_replace(
-        ['%expected', '%given'],
-        [$expected, $given],
+        ['%expected', '%given', '%debug'],
+        [$expected, $given, $debug],
         EXPECT_FUNCTION_ERR_MSG
     ));
 }

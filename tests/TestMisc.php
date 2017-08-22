@@ -1,14 +1,14 @@
 <?php
 
-class CommonTest extends PHPUnit_Framework_TestCase {
-    public function testEsc() {
+class TestMisc extends PHPUnit_Framework_TestCase {
+    public function testMiscEsc() {
         $s = "<&>'\"";
         $this->assertEquals(esc($s), "&lt;&amp;&gt;'\"");
         $this->assertEquals(esc(esc($s), $decode = true), $s);
         $this->assertEquals(fesc($s), "&lt;&amp;&gt;&#039;&quot;");
         $this->assertEquals(fesc(fesc($s), $decode = true), $s);
     }
-    public function testTemplate() {
+    public function testMiscTemplate() {
         $tpl = <<<'TEMPLATE'
 <html><?=(@ $html)?></html>
 TEMPLATE;
@@ -21,16 +21,16 @@ TEMPLATE;
         $this->assertTrue(trim($output) === "<html>test</html>");
         unlink($tmp);
     }
-    public function testCurdate() {
+    public function testMiscCurdate() {
         $this->assertTrue(intval(curdate()) === intval(date('Y')));
         $this->assertTrue(intval(curdate(365)) === (intval(date('Y')) + 1));
     }
-    public function testNow() {
+    public function testMiscNow() {
         $this->assertTrue(intval(now()) === intval(date('Y')));
         $this->assertEquals(count(explode(' ', now())), 2);
         $this->assertTrue(intval(now(3600 * 24 * 365)) === (intval(date('Y')) + 1));
     }
-    public function testHost() {
+    public function testMiscHost() {
         $this->assertEquals(host("http://example.com"), "example.com");
         $this->assertEquals(host("http://EXAMPLE.COM"), "example.com");
         $this->assertEquals(host("http://example.com/"), "example.com");
@@ -44,7 +44,7 @@ TEMPLATE;
         $this->assertNotEquals(host("http://example. com/"), "example.com");
         $this->assertNotEquals(host("http://example .com/"), "example.com");
     }
-    public function testIsHost() {
+    public function testMiscIsHost() {
         $this->assertTrue(is_host("example.com"));
         $this->assertTrue(is_host("domain"));
         $this->assertTrue(is_host("EXAMPLE.COM"));
@@ -55,7 +55,7 @@ TEMPLATE;
         $this->assertFalse(is_host("site. com"));
         $this->assertFalse(is_host("site .com"));
     }
-    public function testNsplit() {
+    public function testMiscNsplit() {
         $this->assertEquals(nsplit("one"), array("one"));
         $this->assertEquals(nsplit("
             one
@@ -65,7 +65,7 @@ TEMPLATE;
         "), array());
         $this->assertEquals(nsplit(""), array());
     }
-    public function testIsClosure() {
+    public function testMiscIsClosure() {
         $closure = function() { ; };
         $this->assertFalse(is_closure('is_closure'));
         $this->assertFalse(is_closure(array($this, 'testIsClosure')));
@@ -73,7 +73,7 @@ TEMPLATE;
         $a = 'closure';
         $this->assertTrue(is_closure($$a));
     }
-    public function testIsIp() {
+    public function testMiscIsIp() {
         $this->assertTrue(is_ip('127.0.0.1'));
         $this->assertTrue(is_ip('192.168.0.1'));
         $this->assertTrue(is_ip('1.1.1.1'));
@@ -89,27 +89,27 @@ TEMPLATE;
         $this->assertFalse(is_ip('192.168.0.1', $allow_private = false));
         $this->assertTrue(is_ip('50.10.10.10', $allow_private = false));
     }
-    public function testIsAssoc() {
+    public function testMiscIsAssoc() {
         $this->assertTrue(is_assoc(array()));
         $this->assertTrue(is_assoc(array('key' => 'value')));
         $this->assertFalse(is_assoc(array('value')));
         $this->assertFalse(is_assoc(array('0' => 'value')));
         $this->assertFalse(is_assoc(array('0' => 'value', 'key' => 'value')));
     }
-    public function testIsRegex() {
+    public function testMiscIsRegex() {
         $this->assertFalse(is_regex(array()));
         $this->assertFalse(is_regex("~\w"));
         $this->assertTrue(is_regex("~\w~"));
         $this->assertTrue(is_regex("&\w~&"));
     }
-    public function testStrReplaceOnce() {
+    public function testMiscStrReplaceOnce() {
         $str = "one one";
         $this->assertEquals(str_replace_once("one", "two", $str), "two one");
         $this->assertEquals(str_replace_once("three", "two", $str), "one one");
         $this->assertEquals(str_replace_once("", "two", $str), "one one");
         $this->assertEquals(str_replace_once("one", "", $str), " one");
     }
-    public function testStrTruncate() {
+    public function testMiscStrTruncate() {
         $one = "Hello, world!";
         $this->assertEquals(str_truncate($one), $one);
         $this->assertEquals(str_truncate($one, 40), $one);
@@ -121,7 +121,7 @@ TEMPLATE;
         $this->assertEquals(str_truncate($one, 0, $center = false, '..'), "H..");
         $this->assertEquals(str_truncate($one, 0, $center = true, '..'), "H..!");
     }
-    public function testMtShuffle() {
+    public function testMiscMtShuffle() {
         //
         $total = 100;
         $collector = array();
@@ -167,26 +167,29 @@ TEMPLATE;
         $this->assertTrue(count(array_unique($collectorV)) > 10);
         $this->assertTrue(count(array_unique($collectorK)) === 1);
     }
-    public function testFileGetExt() {
+    public function testMiscFileGetExt() {
         $this->assertEquals(file_get_ext("/etc/passwd"), "");
         $this->assertEquals(file_get_ext("/var/log/nginx/"), "");
         $this->assertEquals(file_get_ext("/var/log/nginx/access.log"), "log");
         $this->assertEquals(file_get_ext("/var/log/nginx/access.LOG"), "log");
         $this->assertEquals(file_get_ext("archive.tar.GZ"), "gz");
+        $this->assertEquals(file_get_ext("/tmp/tmp.pvoogl4dqa"), "");
+        $this->assertEquals(file_get_ext("/tmp/tmp.alpha"), "alpha");
+        $this->assertEquals(file_get_ext("/tmp/tmp.1"), "1");
     }
-    public function testFileGetName() {
+    public function testMiscFileGetName() {
         $this->assertEquals(file_get_name("/etc/passwd"), "passwd");
         $this->assertEquals(file_get_name("/var/log/nginx/"), "");
         $this->assertEquals(file_get_name("/var/log/nginx/access.log"), "access");
         $this->assertEquals(file_get_name("/var/log/nginx/ACCESS.LOG"), "ACCESS");
         $this->assertEquals(file_get_name("/var/archive.tar.gz"), "archive.tar");
     }
-    public function testRandFromString() {
+    public function testMiscRandFromString() {
         $arr = array(rand_from_string("a"), rand_from_string("b"), rand_from_string("c"));
         $this->assertTrue(count(array_filter($arr, 'is_numeric')) === 3);
         $this->assertTrue(count(array_unique($arr)) === 3);
     }
-    public function testGetUserAgent() {
+    public function testMiscGetUserAgent() {
         $ua = get_user_agent();
         $this->assertTrue(is_string($ua) and strlen($ua));
         $one = get_user_agent(null, 'seed');
@@ -208,7 +211,7 @@ TEMPLATE;
         $this->assertTrue($one === $two);
         $this->assertTrue($one != $three);
     }
-    public function testGetTagAttributes() {
+    public function testMiscGetTagAttributes() {
         $fesc = fesc($_ = "<&\"'>");
         $tag = "
             <a data-value=1 fesc='{$fesc}' href='/about/' class=\"class\" target=_blank>About</a>
@@ -225,7 +228,7 @@ TEMPLATE;
         $this->assertFalse($attrNone ? true : false);
         $this->assertEquals($attrFesc, $_);
     }
-    public function testPrepareTagAttributes() {
+    public function testMiscPrepareTagAttributes() {
         $attributes = ["href" => "/link.html?a=1&b=2", "class" => ["_left", "_clearfix"]];
         $prepared = prepare_tag_attributes($attributes);
         $this->assertEquals($prepared, "href=\"/link.html?a=1&amp;b=2\" class=\"_left _clearfix\"");
@@ -233,7 +236,7 @@ TEMPLATE;
         $prepared = prepare_tag_attributes($attributes);
         $this->assertEquals($prepared, "style=\"margin-top:0;display:flex;\"");
     }
-    public function testRealURL() {
+    public function testMiscRealUrl() {
         $baseRoot = "http://site.com/";
         $baseAsd = "http://site.com/asd";
         $baseAsdSlash = "http://site.com/asd/";
@@ -272,5 +275,57 @@ TEMPLATE;
         //
         $this->assertTrue(realurl("//site.com", 'https://site2.com') === "https://site.com/");
         $this->assertTrue(realurl("//site.com", '//site2.com') === "http://site.com/");
+    }
+    public function testMiscLatinize() {
+        $this->assertTrue(latinize('ÁΓă') === "AGa");
+        $this->assertTrue(latinize('ђÜẽ') === "djUe");
+        $this->assertTrue(latinize('Màl Śir') === "Mal Sir");
+        //
+        $this->assertTrue(latinize('привет мир ă', $ru = true) === "privet mir a");
+        $this->assertTrue(latinize('щука ямка хрен ă', $ru = true) === "shchuka iamka khren a");
+    }
+    public function testMiscNormalize() {
+        $this->assertTrue(normalize("Hello, world!") === "hello world");
+        $this->assertTrue(normalize("|Hello, \n world!", '!|') === "|hello world!");
+        $this->assertTrue(normalize("Привет, мир!", '', $ru = true) === "привет мир");
+    }
+    public function testMiscConfig() {
+        $configString = <<<END
+[global]
+secret = ""
+
+[db-1]
+user-1 = user_1
+user-2 = user_2
+
+[db-2]
+user-2 = user_2
+user-3 = user_3
+END;
+        config('.', parse_ini_string($configString, true));
+        $this->assertEquals(config(), config('.'));
+        $config = config();
+        $this->assertEquals("", $config['global']['secret']);
+        $this->assertEquals("user_1", $config['db-1']['user-1']);
+        $this->assertEquals("", config('global.secret'));
+        $this->assertEquals(array('secret' => ""), config('global'));
+        $this->assertEquals(array("user-1" => "user_1", "user-2" => "user_2"), config('db-1'));
+        config('global.secret', '1');
+        $this->assertEquals("1", config('global.secret'));
+        config('global', array('secret' => 2, 'key' => 'value'));
+        $this->assertEquals("2", config('global.secret'));
+        $this->assertEquals(array('secret' => 2, 'key' => 'value'), config('global'));
+        //
+        $this->assertEquals(array('db-1' => array('user-1' => 'user_1', 'user-2' => 'user_2'), 'db-2' => array('user-3' => 'user_3', 'user-2' => 'user_2')), config('db-*'));
+        $this->assertEquals(array('user-1' => 'user_1', 'user-2' => 'user_2'), config('db-1.user-*'));
+        $this->assertEquals(array('user-1' => 'user_1', 'user-2' => 'user_2'), config('db-1.*'));
+        $config = config();
+        unset($config['global']);
+        $this->assertEquals($config, config('db-*.user-*'));
+        $this->assertEquals(array('db-1' => array('user-1' => 'user_1')), config('db-*.user-1'));
+        //
+        config('array.value[]', 'one');
+        config('array.value[]', 'two');
+        $this->assertEquals(array('one', 'two'), config('array.value'));
     }
 }

@@ -12,6 +12,7 @@ foreach ($matches as $function) {
     $r = new ReflectionFunction($function);
     $block = $r->getDocComment();
     if (!$block) continue;
+    $block = str_replace('*\\/', '*/', $block);
     $doc = $block;
     $doc = preg_replace('~^\s*/\*\*\s*~s', '', $doc);
     $doc = preg_replace('~\s*\*/\s*$~s', '', $doc);
