@@ -328,4 +328,21 @@ END;
         config('array.value[]', 'two');
         $this->assertEquals(array('one', 'two'), config('array.value'));
     }
+    public function testArgumentToOutput() {
+        $this->assertTrue(argumentToOutput(true) === "true\n");
+        $this->assertTrue(argumentToOutput("") === "");
+        $this->assertTrue(argumentToOutput(array()) === "");
+        $this->assertTrue(argumentToOutput(array(1, 2)) === "1\n2\n");
+        $this->assertTrue(argumentToOutput(array("asd1", "asd2")) === "asd1\nasd2\n");
+        $this->assertTrue(argumentToOutput(array('k' => 'v')) === "k => v\n");
+    }
+    public function testInputToArgument() {
+        define($c = md5(microtime(true)), "bla");
+        $this->assertTrue(inputToArgument("true") === true);
+        $this->assertTrue(inputToArgument($c) === "bla");
+        $this->assertTrue(inputToArgument("[]") === array());
+        $this->assertTrue(inputToArgument("[k=>v]") === array('k' => 'v'));
+        $this->assertTrue(inputToArgument("[v1,v2]") === array('v1', 'v2'));
+        $this->assertTrue(inputToArgument("[v1, {$c}]") === array('v1', 'bla'));
+    }
 }

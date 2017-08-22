@@ -12,4 +12,4 @@ script: test -n "$TRAVIS_TAG" || { ./deploy.sh && phpunit && php ./gendoc.php &&
 
 env:
   global:
-    - MARIADB_HOST="localhost" MARIADB_USER="user" MARIADB_PASS="pass" MARIADB_DB="db"
+    - SQL_HOST="127.0.0.1" SQL_USER="user" SQL_PASS="pass" SQL_DB="db"

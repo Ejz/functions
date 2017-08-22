@@ -1470,6 +1470,467 @@ function ini_file_set($file, $key, $value) {
 }
 
 /**
+ * Transforms readable form of string to variable.
+ */
+function readable_to_variable($readable, $trim = true) {
+    $self = __FUNCTION__;
+    if (!is_string($input)) return null;
+    if ($trim) $input = trim($input);
+    if (is_null($input)) return null;
+    if ($input === "") return "";
+    $lower = strtolower($input);
+    if ($lower === 'true') return true;
+    if ($lower === 'false') return false;
+    if ($lower === 'null') return null;
+    if (defined($input)) return constant($input);
+    if (is_float($input)) return floatval($input);
+    if (is_numeric($input)) return intval($input);
+    if (preg_match('~^\[(.*)\]$~s', $input, $match)) {
+        $match[1] = trim($match[1]);
+        if ($match[1] === "") return array();
+        $array = array();
+        $kvs = preg_split('~\s*,\s*~', $match[1]);
+        foreach ($kvs as $kv) {
+            $kv = explode('=>', $kv, 2);
+            if (count($kv) == 2)
+                $array[$self($kv[0], $trim)] = $self($kv[1], $trim);
+            else $array[] = $self($kv[0], $trim);
+        }
+        return $array;
+    }
+    return $input;
+}
+
+/**
+ * Transform any variable to readable form.
+ */
+function variable_to_readable($variable) {
+    $self = __FUNCTION__;
+    $return = function ($_) {
+        return $_ . ($_ !== "" ? "\n" : '');
+    };
+    if (is_null($variable)) return $return("");
+    if ($variable === false) return $return("false");
+    if ($variable === true) return $return("true");
+    if (is_float($variable) or is_integer($variable)) return $return($variable);
+    if (is_string($variable)) return $return(trim($variable));
+    if (is_object($variable) and method_exists($variable, '__toString'))
+        return $return(trim((string)($variable)));
+    if (!is_array($variable)) return "";
+    if (count(array_filter(array_keys($variable), 'is_numeric')) == count($variable) and count(array_filter($variable, 'is_array')) == 0)
+        return $return(implode("\n", array_map(function ($variable) use ($self) {
+            return trim($self($variable));
+        }, array_values($variable))));
+    if (is_assoc($variable) and count(array_filter($variable, 'is_array')) == 0) {
+        $echo = array();
+        foreach ($variable as $k => $v) {
+            $v = trim($self($v));
+            $echo[] = "{$k} => {$v}";
+        }
+        return $return(implode("\n", $echo));
+    }
+    return $return(trim(json_encode($variable, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)));
+}
+
+/**
+ * Cron out-of-the-box. Supports Linux format.
+ * ```
+ *  * * * * *
+ *  | | | | |
+ *  | | | | +----- Days of week (0-6), 0 - Sunday
+ *  | | | +------- Months (1-12)
+ *  | | +--------- Days of month (1-31)
+ *  | +----------- Hours (0-23)
+ *  +------------- Minutes (0-59)
+ *
+ * * - any value
+ * 1 - certain value
+ * 1-2 - value lies in interval
+ * 1,4 - list of values
+ * *\/2 - all even values
+ * 1,2-3,*\/4 - mix
+ * ```
+ */
+function go_cron($file, $dir = null) {
+    if (is_null($dir)) $dir = sys_get_temp_dir();
+    if (!is_dir($dir)) mkdir($dir);
+    if (is_file($file)) $crons = nsplit(template($file));
+    else _err(__FUNCTION__ . ": INVALID CRON! | {$file}");
+    $time = func_num_args() > 2 ? func_get_arg(2) : time();
+    $trigger = function ($cron) use ($time) {
+        $format = "iHdnw";
+        for ($i = 0; $i < strlen($format); $i++) {
+            $t = intval(date($format[$i], $time));
+            foreach (explode(',', $cron[$i]) as $elem) {
+                if ($elem === '*') continue 2;
+                if (is_numeric($elem) and $elem == $t) continue 2;
+                if (
+                    preg_match('~^(\d+)-(\d+)$~', $elem, $match)
+                        and
+                    intval($match[1]) <= $t
+                        and
+                    $t <= intval($match[2])
+                ) continue 2;
+                if (
+                    preg_match('~^\*/(\d+)$~', $elem, $match)
+                        and
+                    ($t % $match[1] === 0)
+                ) continue 2;
+            }
+            return false;
+        }
+        return true;
+    };
+    foreach ($crons as $cron) {
+        if (strpos($cron, '#') === 0) continue;
+        $cron = preg_split('~\s+~', $cron, 6);
+        if (count($cron) != 6) continue;
+        $exec = array_pop($cron);
+        if (!$trigger($cron)) continue;
+        $name = preg_split('~\s+~', $exec);
+        array_walk($name, function (& $_) {
+            if (is_file($_)) $_ = basename($_);
+            if (is_dir(dirname($_))) $_ = basename($_);
+        });
+        $name = implode(' ', $name);
+        $std = sprintf(
+            "%s/%s.%s.txt",
+            $dir,
+            time(),
+            substr(str_replace(' ', '-', normEn($name)), 0, 255)
+        );
+        shell_exec($_ = sprintf("nohup bash -c %s >%s 2>&1 &", escapeshellarg($exec), escapeshellarg($std)));
+        _log(__FUNCTION__ . ': ' . $_);
+    }
+}
+
+/**
+ * Universal SQL wrapper.
+ */
+function SQL() {
+    static $link;
+    if (is_array($link)) {
+        if (!function_exists('mysqli_connect'))
+            _err("MYSQLI IS NOT INSTALLED!");
+        @ $link = call_user_func_array('mysqli_connect', $link);
+        if (mysqli_connect_errno())
+            _err("INVALID SQL CONNECTION: " . mysqli_connect_error());
+    }
+    $n = func_num_args();
+    if (!$n and !is_resource($link)) _err("SQL CONNECTION IS NOT DEFINED!");
+    if (!$n) return $link;
+    $args = func_get_args();
+    if (is_null($link)) {
+        $link = $args;
+        return;
+    }
+    $sql = array_shift($args);
+    $sql = trim($sql);
+    if ($isSelect = (stripos($sql, 'select') === 0)) ;
+    elseif ($isInsert = (stripos($sql, 'insert') === 0)) ;
+    elseif ($isReplace = (stripos($sql, 'replace') === 0)) ;
+    elseif ($isUpdate = (stripos($sql, 'update') === 0)) ;
+    elseif ($isDelete = (stripos($sql, 'delete') === 0)) ;
+    $escape = function ($string) use ($link) {
+        if ($string === null) return 'NULL';
+        if ($string === false) return '0';
+        if ($string === true) return '1';
+        if (is_object($string) and method_exists($string, '__toString'))
+            $string = (string)($string);
+        $string = mysqli_real_escape_string($link, $string);
+        return '\'' . $string . '\'';
+    };
+    if ($args) {
+        $collect = array();
+        foreach ($args as $arg)
+            if (is_assoc($arg)) {
+                array_walk($arg, function (& $v, $k) use ($escape) {
+                    $v = sprintf("`%s` = %s", $k, $escape($v));
+                });
+                $collect[] = implode(', ', array_values($arg));
+            } elseif (is_array($arg)) {
+                array_walk($arg, function (& $v) use ($escape) {
+                    $v = $escape($v);
+                });
+                $collect[] = implode(', ', $arg);
+            } else $collect[] = $escape($arg);
+        array_unshift($collect, $sql);
+        $sql = call_user_func_array('sprintf', $collect);
+    }
+    $result = mysqli_query($link, $sql);
+    if (!$result) _err(sprintf(
+        "SQL ERROR: %s, %s -> %s",
+        mysqli_sqlstate($link),
+        mysqli_error($link),
+        trim(preg_replace('~\s+~', ' ', $sql))
+    ));
+    if ($isInsert or $isReplace) return mysqli_insert_id($link);
+    if ($isUpdate or $isDelete) return mysqli_affected_rows($link);
+    if (!is_resource($result)) return $result;
+    $rows = array();
+    while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) $rows[] = $row;
+    mysqli_free_result($result);
+    return $rows;
+}
+
+/**
+ * Encode string to URL-safe Base64 format.
+ */
+function url_base64_encode($data) {
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+/**
+ * Decode from URL-safe Base64 format.
+ */
+function url_base64_decode($data) {
+    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+}
+
+/**
+ * XOR encryption.
+ */
+function xencrypt($string, $key) {
+    $string = mt_rand() . ':' . $string . ':' . mt_rand();
+    for ($i = 0; $i < strlen($string); $i++) {
+        $k = md5($key . (string)(substr($string, $i + 1)) . $i);
+        for ($j = 0; $j < strlen($k); $j++)
+            $string[$i] = $string[$i] ^ $k[$j];
+    }
+    return url_base64_encode($string);
+}
+
+/**
+ * XOR decryption.
+ */
+function xdecrypt($string, $key) {
+    $string = url_base64_decode($string);
+    for ($i = strlen($string) - 1; $i >= 0; $i--) {
+        @ $k = md5($key . (string)(substr($string, $i + 1)) . $i);
+        for ($j = 0; $j < strlen($k); $j++)
+            $string[$i] = $string[$i] ^ $k[$j];
+    }
+    $string = explode(':', $string, 2);
+    if (count($string) != 2 or !is_numeric($string[0])) return null;
+    $string = $string[1];
+    $pos = strrpos($string, ':');
+    if (!$pos) return null;
+    return substr($string, 0, $pos);
+}
+
+/**
+ * Implements OpenSSL encryption.
+ */
+function oencrypt($string, $key) {
+    $method = 'aes-256-ofb';
+    $iv = substr(md5($key), 0, 16);
+    $string = mt_rand() . ':' . $string . ':' . mt_rand();
+    $string = openssl_encrypt($string, $method, $key, OPENSSL_RAW_DATA, $iv);
+    return url_base64_encode($string);
+}
+
+/**
+ * Implements OpenSSL decryption.
+ */
+function odecrypt($string, $key) {
+    $method = 'aes-256-ofb';
+    $iv = substr(md5($key), 0, 16);
+    $string = url_base64_decode($string);
+    $string = openssl_decrypt($string, $method, $key, OPENSSL_RAW_DATA, $iv);
+    $string = explode(':', $string, 2);
+    if (count($string) != 2 or !is_numeric($string[0]))
+        return null;
+    $string = $string[1];
+    $pos = strrpos($string, ':');
+    if (!$pos) return null;
+    return substr($string, 0, $pos);
+}
+
+/**
+ * Decode string from Base32 format.
+ */
+function base32_decode($s) {
+    static $map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $tmp = array();
+    foreach (str_split($s) as $c)
+        $tmp[] = sprintf('%05b', intval(strpos($map, $c)));
+    $tmp = implode('', $tmp);
+    $args = array_map('bindec', str_split($tmp, 8));
+    array_unshift($args, 'C*');
+    return rtrim(call_user_func_array('pack', $args), "\0");
+}
+
+/**
+ * Encode string in Base32 format.
+ */
+function base32_encode($string) {
+    static $map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $output = array();
+    $collect = array();
+    for ($i = 0; $i < strlen($string); $i++)
+        $collect[] = str_pad(decbin(ord($string[$i])), 8, '0', STR_PAD_LEFT);
+    $neededPad = 5 - (count($collect) % 5);
+    if ($neededPad > 0 and $neededPad < 5)
+        $collect[] = str_repeat('0', 5 - $neededPad);
+    $collect = implode('', $collect);
+    foreach (str_split($collect, 5) as $binaryChunk)
+        $output[] = $map[bindec($binaryChunk)];
+    return implode('', $output);
+}
+
+function im_wrapper($image, $settings) {
+    if (!is_file($image) or !getimagesize($image) or !$settings['action'])
+        return null;
+    if (!isset($settings['dir'])) $settings['dir'] = dirname($image);
+    if (!is_dir($settings['dir'])) mkdir($settings['dir']);
+    $md5 = md5(md5_file($image) . $settings['action']);
+    $name = $settings['prefix'] . substr($md5, 0, 10);
+    $ext = image_type_to_extension(exif_imagetype($image));
+    if (!$ext) return _warn("Invalid extension: {$image}");
+    $target = "{$settings['dir']}/{$name}{$ext}";
+    $log = isset($settings['log']) ? $settings['log'] : false;
+    $overwrite = isset($settings['overwrite']) ? $settings['overwrite'] : false;
+    if (!is_file($target) or $overwrite) {
+        $output = shell_exec($cmd = sprintf(
+            "convert %s %s %s 2>&1",
+            escapeshellarg($image),
+            $settings['action'],
+            escapeshellarg($target)
+        ));
+        $ok = is_file($target);
+        if ($ok and $log) _log($cmd);
+        elseif (!$ok) return _warn($cmd . ': ' . trim($output));
+    }
+    return $target;
+}
+
+/**
+ * Resize image.
+ */
+function im_resize($image, $settings) {
+    if (!$settings['size']) return null;
+    $size = escapeshellarg($settings['size']);
+    $_ = array('action' => "-resize {$size}");
+    return im_wrapper($image, $_ + $settings + ['prefix' => __FUNCTION__ . '_']);
+}
+
+/**
+ * Make the image transparent.
+ */
+function im_transparent($image, $settings = array()) {
+    if (!isset($settings['transparent'])) $settings['transparent'] = 'white';
+    $transparent = escapeshellarg($settings['transparent']);
+    $_ = array('action' => "-fuzz 5% -transparent {$transparent}");
+    return im_wrapper($image, $_ + $settings + ['prefix' => __FUNCTION__ . '_']);
+}
+
+/**
+ * Crop provided image.
+ */
+function im_crop($image, $settings = array()) {
+    if (!$settings['size']) return null;
+    $size = escapeshellarg($settings['size']);
+    $gravity = !empty($settings['gravity']) ? $settings['gravity'] : '';
+    $values = ['', 'NorthWest', 'North', 'NorthEast', 'West', 'Center', 'East', 'SouthWest', 'South', 'SouthEast'];
+    $values = array_combine(array_map('strtolower', $values), $values);
+    if (!isset($values[strtolower($gravity)])) {
+        _warn(__FUNCTION__ . ": Invalid gravity value: {$gravity}");
+        $gravity = '';
+    }
+    $gravity = $values[strtolower($gravity)];
+    $gravity = $gravity ? sprintf("-gravity %s", escapeshellarg($gravity)) : '';
+    $_ = array('action' => "{$gravity} -crop {$size} +repage");
+    return im_wrapper($image, $_ + $settings + ['prefix' => __FUNCTION__ . '_']);
+}
+
+/**
+ * Draw border around image.
+ */
+function im_border($image, $settings = array()) {
+    if (!isset($settings['border'])) $settings['border'] = '1';
+    if (!isset($settings['borderColor'])) $settings['borderColor'] = 'black';
+    $border = escapeshellarg($settings['border']);
+    $borderColor = escapeshellarg($settings['borderColor']);
+    $_ = array('action' => "-border {$border} -bordercolor {$borderColor}");
+    return im_wrapper($image, $_ + $settings + ['prefix' => __FUNCTION__ . '_']);
+}
+
+/**
+ * Generate captcha image.
+ */
+function im_captcha($settings = array()) {
+    $settings = $settings + [
+        'width' => null,
+        'height' => 50,
+        'length' => 6,
+        'padding' => 4
+    ];
+    $width = $settings['width'];
+    $height = $settings['height'];
+    $length = $settings['length'];
+    $padding = $settings['padding'];
+    $padding = intval($padding) > 0 ? intval($padding) : 4;
+    $length = intval($length) > 0 ? intval($length) : 6;
+    $height = intval($height) > 0 ? intval($height) : 50;
+    $paddingLR = $padding;
+    $paddingTB = $padding;
+    $size = $height - 2 * $padding;
+    $fonts = glob(__DIR__ . "/fonts/*.ttf");
+    if (!$fonts) return array();
+    $font = $fonts[mt_rand(0, count($fonts) - 1)];
+    $box = imagettfbbox($size, 0, $font, "H");
+    $_width = abs($box[2] - $box[0]);
+    $_shift = abs($box[6] - $box[0]);
+    $_height = abs($box[7] - $box[1]);
+    //
+    if (!$width) $width = ($length * $_width) + (($length + 1) * $padding) + $_shift;
+    //
+    $image = imagecreatetruecolor($width, $height);
+    if (!$image) return array();
+    $letters = 'ABCDEFGHJKMNPRSTUVWXYZ'; // no "I", "L", "O", "Q"
+    $backgroundColor = imagecolorallocate($image, 255, 255, 255);
+    $lineColor = imagecolorallocate($image, 64, 64, 64);
+    $pixelColor = imagecolorallocate($image, 0, 0, 255);
+    $textColor = imagecolorallocate($image, 0, 0, 0);
+    imagefilledrectangle($image, 0, 0, $width, $height, $backgroundColor);
+    // 3 lines
+    imageline($image, 0, mt_rand() % $height, $width, mt_rand() % $height, $lineColor);
+    imageline($image, 0, mt_rand() % $height, $width, mt_rand() % $height, $lineColor);
+    imageline($image, 0, mt_rand() % $height, $width, mt_rand() % $height, $lineColor);
+    // add noise
+    for ($i = 0; $i < 500; $i++)
+        imagesetpixel($image, mt_rand() % $width, mt_rand() % $height, $pixelColor);
+    $len = strlen($letters);
+    $word = "";
+    for ($i = 0; $i < $length; $i++) {
+        $letter = $letters[mt_rand(0, $len - 1)];
+        $angle = (-5 + mt_rand(0, 10));
+        imagettftext(
+            $image,
+            $size,
+            $angle,
+            ($i * ($padding + $_width)) + $padding,
+            $padding + $_height,
+            $textColor,
+            $font,
+            $letter
+        );
+        $word .= $letter;
+    }
+    $file = rtrim(`mktemp --suffix=.png`);
+    imagepng($image, $file);
+    imagedestroy($image);
+    $im_border = array();
+    if (isset($settings['borderColor']))
+        $im_border['borderColor'] = $settings['borderColor'];
+    if (isset($settings['border']))
+        $im_border['border'] = $settings['border'];
+    $file = im_border($file, $im_border);
+    if (!$file) return array();
+    return array('file' => $file, 'word' => $word);
+}
+
+/**
  * Raise an error, if given variable does not match type.
  *
  * ```
