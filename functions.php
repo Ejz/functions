@@ -1673,6 +1673,88 @@ function SQL() {
     return $rows;
 }
 
+function R() {
+    static $link;
+    if (is_array($link)) {
+        $parsed = parse_url($link[0]);
+        if (empty($parsed['scheme']) or empty($parsed['host']) or empty($parsed['port']) or $parsed['scheme'] != 'redis')
+            _err(__FUNCTION__ . ': Invalid connection string!');
+        $link = fsockopen($parsed['host'], $parsed['port'], $errno, $errstr);
+        if ($link === false)
+            _err(__FUNCTION__ . ': Connection failed - ' . trim($errstr));
+        if (!empty($parsed['pass'])) {
+            $res = call_user_func(__FUNCTION__, 'AUTH', $parsed['pass']);
+            if (!$res) _err(__FUNCTION__ . ': Login failed!');
+        }
+    }
+    $n = func_num_args();
+    if (!$n and !is_resource($link)) _err("REDIS CONNECTION IS NOT DEFINED!");
+    if (!$n) return $link;
+    $args = func_get_args();
+    if (is_null($link)) {
+        $link = $args;
+        return;
+    }
+    $function = __FUNCTION__;
+    $read = function () use (& $read, & $link, $function) {
+        $reply = trim(fgets($link, 512));
+        $first = substr($reply, 0, 1);
+        if ($first === '-')
+            _err($function . ': ERROR (' . trim($reply) . ')');
+        if ($first === '+') {
+            $response = substr(trim($reply), 1);
+            if ($response === 'OK') $response = true;
+            return $response;
+        }
+        if ($first === '$') {
+            $size = intval(substr($reply, 1));
+            if ($size === -1) return null;
+            $response = [];
+            $bytes_all = 0;
+            do {
+                $block_size = ($size - $bytes_all) > 1024 ? 1024 : ($size - $bytes_all);
+                $r = fread($link, $block_size);
+                if ($r === false)
+                    _err($function . ': READ FROM SERVER ERROR!');
+                else {
+                    $bytes_all += strlen($r);
+                    $response[] = $r;
+                }
+            } while ($bytes_all < $size);
+            fread($link, 2); /* CRLF */
+            return implode('', $response);
+        }
+        if ($first === '*') {
+            $count = intval(substr($reply, 1));
+            if ($count === -1) return null;
+            $responses = array();
+            for ($i = 0; $i < $count; $i++)
+                $responses[] = $read();
+            return $responses;
+        }
+        if ($first === ':') {
+            return intval(substr(trim($reply), 1));
+        }
+        _err($function . ': Unknown response!');
+    };
+    $call = function ($name, $args) {
+        $crlf = "\r\n";
+        array_unshift($args, $name);
+        $cmd = sprintf('*%d%s%s%s', count($args), $crlf, implode(
+            array_map(function ($arg) use ($crlf) {
+                return sprintf('$%d%s%s', strlen($arg), $crlf, $arg);
+            }, $args), $crlf
+        ), $crlf);
+        for ($written = 0; $written < strlen($cmd); $written += $fwrite) {
+            $fwrite = fwrite($link, substr($cmd, $written));
+            if ($fwrite === false or $fwrite <= 0)
+                _err(__FUNCTION__ . ': WRITE ERROR!!');
+        }
+    };
+    call_user_func_array($call, $args);
+    return $read();
+}
+
 /**
  * Encode string to URL-safe Base64 format.
  */
