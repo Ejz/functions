@@ -3,34 +3,36 @@
 cd "`dirname "$0"`"
 
 # Install composer itself
-if ! which composer; then
+if [ ! -f "composer.phar" ]; then
     echo "Installing Composer .."
     curl -sS 'https://getcomposer.org/installer' | php
     chmod a+x composer.phar
-    mv composer.phar /usr/local/bin/composer
 fi
 
 # Install PHPUnit
-if ! which phpunit; then
+if [ ! -f "phpunit.phar" ]; then
     echo "Installing PHPUnit .."
-    wget "https://phar.phpunit.de/phpunit-5.7.phar" -O phpunit.phar
+    ver="3.7"
+    php_ver=`php -v | head -1 | cut -d" " -f2`
+    if [ "$php_ver" = "`echo -e "${php_ver}\n5.6" | sort -rV | head -n1`" ]; then
+        ver="5.7"
+    fi
+    wget "https://phar.phpunit.de/phpunit-${ver}.phar" -O phpunit.phar
     chmod a+x phpunit.phar
-    mv phpunit.phar /usr/local/bin/phpunit
 fi
 
-# Composer install
-if [ ! -d vendor ]; then
-    composer install
-else
-    composer update
-fi
+# Composer install/update
+./composer.phar install
+./composer.phar update
 
-# Some patches
+# Patch NormalizerFormatter.php
 p1="vendor/monolog/monolog/src/Monolog/Formatter/NormalizerFormatter.php"
 p2="patch/normalizer.patch"
 if [ -f "$p1" ] && [ -f "$p2" ]; then
     patch "$p1" "$p2"
 fi
+
+# Patch ErrorHandler.php
 p1="vendor/monolog/monolog/src/Monolog/ErrorHandler.php"
 p2="patch/errorhandler.patch"
 if [ -f "$p1" ] && [ -f "$p2" ]; then
