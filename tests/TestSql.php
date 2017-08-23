@@ -5,8 +5,9 @@ class TestSql extends PHPUnit_Framework_TestCase {
         $host = getenv('SQL_HOST');
         $user = getenv('SQL_USER');
         $pass = getenv('SQL_PASS');
+        $port = getenv('SQL_PORT');
         $db = getenv('SQL_DB');
-        SQL($host, $user, $pass, $db);
+        SQL($host, $user, $pass, $db, $port);
         SQL("
             CREATE TABLE `user` (
                 `user_id` INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,

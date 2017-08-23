@@ -2012,6 +2012,155 @@ function im_captcha($settings = array()) {
     return array('file' => $file, 'word' => $word);
 }
 
+function crawler($urls, $settings) {
+    if (!isset($settings['dir'])) {
+        _warn("DIR IS NOT DEFINED!");
+        return false;
+    }
+    $dir = $settings['dir'];
+    if (!isset($settings['level'])) $settings['level'] = 5;
+    $level = $settings['level'];
+    if (!$level) return true;
+    if (!is_dir($dir)) mkdir($dir);
+    if (!is_dir($dir)) return false;
+    if (is_file($_ = $dir . '/pool.txt') and empty(file_get_contents($_))) {
+        _warn("POOL IS EMPTY!");
+        return true;
+    }
+    $files = array('inimages', 'outimages', 'instatic', 'outstatic', 'inlinks', 'outlinks', 'errlinks', 'pool');
+    foreach ($files as $name) {
+        $$name = null;
+        $ref = & $$name;
+        $ref = array('file' => $dir . "/{$name}.txt", 'all' => array());
+        if (is_file($ref['file'])) {
+            $ref['all'] = nsplit(file_get_contents($ref['file']));
+            $ref['all'] = array_flip($ref['all']);
+        }
+    }
+    if (is_string($urls)) $urls = array($urls);
+    $limit_per_level = isset($settings['limit_per_level']) ? $settings['limit_per_level'] : 100;
+    $filter = $settings['filter'];
+    if (!is_callable($filter)) {
+        _warn("FILTER IS NOT CALLABLE!");
+        return false;
+    }
+    if (!is_null($urls) and !$pool['all']) $pool['all'] = array_flip($urls);
+    $urls = array_keys($pool['all']);
+    _warn("Start loop #{$level} with " . count($urls) . " links!");
+    $_ = microtime(true);
+    if (count($urls) > $limit_per_level) {
+        mt_shuffle($urls);
+        $_ = round(microtime(true) - $_, 1);
+        if ($_ > 0.5) _warn(sprintf("Shuffle done in %s sec!", $_));
+        $_ = microtime(true);
+        $urls = array_slice($urls, 0, $limit_per_level);
+    }
+    mt_shuffle($urls);
+    $_ = round(microtime(true) - $_, 1);
+    if ($_ > 0.5) _warn(sprintf("Shuffle done in %s sec!", $_));
+    $path = function ($url, $header = false) use ($dir) {
+        $host = host($url);
+        $path = parse_url($url, PHP_URL_PATH) ?: '/';
+        $path = normEn(normLatinRu(normLatin($path)));
+        if (!$path) $path = 'index.html';
+        $path = str_replace(' ', '-', $path);
+        $md5 = substr(md5($url), 0, 6);
+        $path = "{$dir}/{$host}/{$path}-{$md5}/" . ($header ? "header.txt" : "content.html");
+        if (!is_dir(dirname(dirname($path))))
+            mkdir(dirname(dirname($path)));
+        if (!is_dir(dirname($path)))
+            mkdir(dirname($path));
+        return $path;
+    };
+    $process = function ($url, $content) use (
+        $filter, & $inimages, & $outimages, & $instatic, & $outstatic,
+        & $inlinks, & $outlinks, & $errlinks, & $pool
+    ) {
+        if (!$content) return;
+        $host = host($url);
+        if (!$host) return;
+        if (!$filter($url)) return;
+        $unique = array();
+        $hrefs = xpath($content, '//a/@href');
+        $srcs = xpath($content, '//img/@src');
+        foreach (array_merge($srcs, $hrefs) as $href) {
+            $v0 = getTagAttr($href, 'href');
+            $v1 = getTagAttr($href, 'src');
+            $href = $v0 ?: $v1;
+            $href = realurl($href, $url);
+            $isImage = ($v1 or isset($inimages['all'][$href]) or isset($outimages['all'][$href]));
+            if (!host($href)) continue;
+            if ($href === $url) continue;
+            if (isset($unique[$href])) continue;
+            $unique[$href] = true;
+            $isInner = $filter($href);
+            $ext = file_get_ext(parse_url($href, PHP_URL_PATH) ?: '/');
+            $isStatic = ($ext and !in_array($ext, array('html', 'txt', 'php', 'htm', 'aspx', 'asp', 'xhtml', 'shtml')) and strlen($ext) < 5);
+            if ($isImage and $isInner and !isset($inimages['all'][$href]))
+                $inimages['all'][$href] = true;
+            elseif ($isImage and !$isInner and !isset($outimages['all'][$href]))
+                $outimages['all'][$href] = true;
+            if ($isImage) continue;
+            if ($isStatic and $isInner and !isset($instatic['all'][$href]))
+                $instatic['all'][$href] = true;
+            elseif ($isStatic and !$isInner and !isset($outstatic['all'][$href]))
+                $outstatic['all'][$href] = true;
+            if ($isStatic) continue;
+            $isset = (
+                isset($pool['all'][$href])
+                    or
+                isset($inlinks['all'][$href])
+                    or
+                isset($outlinks['all'][$href])
+                    or
+                isset($errlinks['all'][$href])
+                    or
+                isset($inimages['all'][$href])
+                    or
+                isset($outimages['all'][$href])
+            );
+            if ($isset) continue;
+            if ($isInner)
+                $pool['all'][$href] = true;
+            else $outlinks['all'][$href] = true;
+        }
+    };
+    $collect = array_flip($urls);
+    $results = curl($urls, ['format' => 'complex'] + $settings['curl']);
+    foreach ($results as $url => $result) {
+        $p0 = $path($url);
+        $p1 = $path($result['info']['url']);
+        $ph = $path($result['info']['url'], $header = true);
+        _log("{$result['info']['url']} .. {$p1}");
+        $process($result['info']['url'], $result['content']);
+        file_put_contents($ph, $result['header']);
+        file_put_contents($p1, $result['content']);
+        unset($collect[$url]);
+        unset($pool['all'][$url]);
+        $inlinks['all'][$url] = true;
+        if ($p0 == $p1) continue;
+        if (!file_exists($p0)) symlink($p1, $p0);
+        $url = $result['info']['url'];
+        $inlinks['all'][$url] = true;
+        if (isset($pool['all'][$url]))
+            unset($pool['all'][$url]);
+        if (isset($collect[$url]))
+            unset($collect[$url]);
+    }
+    foreach (array_keys($collect) as $url) {
+        _warn("{$url} .. ERR!");
+        $errlinks['all'][$url] = true;
+        if (isset($pool['all'][$url]))
+            unset($pool['all'][$url]);
+    }
+    foreach ($files as $name) {
+        $ref = & $$name;
+        $content = implode("\n", array_keys($ref['all']));
+        file_put_contents($ref['file'], $content ? $content . "\n" : '');
+    }
+    return crawler(null, ['level' => --$level] + $settings);
+}
+
 /**
  * Raise an error, if given variable does not match type.
  *
