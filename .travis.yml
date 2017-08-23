@@ -12,4 +12,4 @@ script: test -n "$TRAVIS_TAG" || { ./deploy.sh && phpunit && php ./gendoc.php &&
 
 env:
   global:
-    - SQL_HOST="127.0.0.1" SQL_PORT="3307" SQL_USER="user" SQL_PASS="pass" SQL_DB="db"
+    - SQL_HOST="localhost" SQL_PORT="3307" SQL_USER="user" SQL_PASS="pass" SQL_DB="db"
