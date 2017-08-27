@@ -5,9 +5,12 @@ this_dir=`dirname "$this"`
 cd "$this_dir"
 prefix=`basename "$this_dir"`
 defaults=""
-if [ "$1" == "--defaults" -o "$1" == "-D" ]; then
+phpunit=""
+if [ "$1" == "-D" -o "$2" == "-D" ]; then
     defaults="yes"
-    shift
+fi
+if [ "$1" == "-P" -o "$2" == "-P" ]; then
+    phpunit="yes"
 fi
 
 sudo=""
@@ -127,5 +130,6 @@ $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.user "$SQL_USER"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.pass "$SQL_PASS"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.db "$SQL_DB"
 
-# Run Smoke!
-$EXEC php "$BASE"/phpunit.phar -c /var/www/"$HOST"/phpunit.xml --filter=testSmoke
+if [ "$phpunit" ]; then
+    $EXEC php "$BASE"/phpunit.phar -c /var/www/"$HOST"/phpunit.xml
+fi
