@@ -19,7 +19,9 @@ foreach ($matches as $function) {
     $list[] = "- [{$function}](#{$function})";
     $pos = strpos($content, "function {$function}(");
     $lstart = substr_count(preg_replace("~^function\s+{$function}\([\s\S]*~m", '', $content), "\n") + 1;
-    $_ = preg_replace("~^function\s+{$function}\(~m", '', $content);
+    $md5 = md5(mt_rand());
+    $_ = preg_replace("~^function\s+{$function}\(~m", $md5, $content);
+    $_ = substr($_, strpos($_, $md5));
     $lend = substr_count(preg_replace("~^\}[\s\S]*~m", '', $_), "\n") + $lstart;
     $output[] = (
         "#### {$function}\n\n" .
