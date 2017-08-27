@@ -101,15 +101,21 @@ echo "// --------------------- //"
 echo
 
 set -x
-CGI="/var/www/${HOST}/cgi"
+BASE="/var/www/${HOST}"
+CGI="$BASE"
+[ -d cgi ] && CGI="${BASE}/cgi"
 EXEC="$sudo docker exec -i ${DOCKER_NAME_PREFIX}nginx"
-$EXEC "$CGI"/../install.sh
+$EXEC -- bash -c "echo 'export TERM=xterm' >>/root/.bashrc"
+$EXEC -- bash -c "echo 'cd ${BASE}' >>/root/.bashrc"
+$EXEC -- git config --global user.email "user@email.com"
+$EXEC -- git config --global user.name "Name"
+$EXEC "$BASE"/install.sh
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI global.default_host "$HOST"
-$EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI mailgun.domain "$HOST"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.host "$SQL_HOST"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.port "$SQL_PORT"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.user "$SQL_USER"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.pass "$SQL_PASS"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.db "$SQL_DB"
 
-$EXEC php "$CGI"/../phpunit.phar --filter=testSmoke
+# Run Smoke!
+$EXEC php "$BASE"/phpunit.phar --filter=testSmoke
