@@ -97,6 +97,15 @@ function template() {
 
 /**
  * Validate a hostname (an IP address or domain name).
+ *
+ * ```
+ * bool is_host(string $host);
+ * ```
+ *
+ * ```php
+ * $bool = is_host("github.com");
+ * // $bool => true
+ * ```
  */
 function is_host($host) {
     return (
@@ -425,17 +434,17 @@ function file_get_name($file) {
  *
  * ```php
  * $int = rand_from_string("one");
- * // $int => 48928
+ * // $int => 975299411
  * ```
  *
  * ```php
  * $int = rand_from_string("two");
- * // $int => 48928
+ * // $int => 897156455
  * ```
  *
  * ```php
  * $int = rand_from_string("one");
- * // $int => 48928
+ * // $int => 975299411
  * ```
  */
 function rand_from_string($string) {
