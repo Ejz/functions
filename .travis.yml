@@ -8,8 +8,4 @@ php:
 services:
   - docker
 
-script: test -n "$TRAVIS_TAG" || { ./deploy.sh && ./phpunit.phar && php ./gendoc.php && ./gitci.sh "README.md" "Update README.md [skip ci]"; }
-
-env:
-  global:
-    - SQL_HOST="localhost" SQL_PORT="3307" SQL_USER="user" SQL_PASS="pass" SQL_DB="db"
+script: test -n "$TRAVIS_TAG" || { ./deploy.sh -D && ./phpunit.phar && php ./gendoc.php && ./gitci.sh "README.md" "Update README.md [skip ci]"; }

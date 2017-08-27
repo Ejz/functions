@@ -2,6 +2,7 @@ composer.lock
 vendor/*
 composer.phar
 phpunit.phar
+local.ini
 /vars/*
 /www/captcha/*
 /www/css/*.css

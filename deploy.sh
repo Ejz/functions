@@ -114,6 +114,7 @@ $EXEC git config --global user.name "Name"
 set +x
 echo "$EXEC" "$BASE"/install.sh
 if [ "$GH_TOKEN" ]; then
+    echo "Run install.sh with GH_TOKEN!"
     $EXEC_GH_TOKEN "$BASE"/install.sh
 else
     $EXEC "$BASE"/install.sh
