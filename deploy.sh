@@ -56,7 +56,7 @@ for var in "${vars[@]}"; do
     eval export "$one"='$temp'
 done
 
-rm -f cgi/local.ini
+rm -f local.ini cgi/local.ini
 list=`$sudo docker ps -a --filter "name=^/${DOCKER_NAME_PREFIX}" | awk '{print $1}' | tail -n +2`
 if [ "$list" ]; then
     echo "Delete Docker containers with prefix ${DOCKER_NAME_PREFIX}:"
@@ -101,15 +101,24 @@ echo "// --------------------- //"
 echo
 
 set -x
+set -e
 BASE="/var/www/${HOST}"
 CGI="$BASE"
 [ -d cgi ] && CGI="${BASE}/cgi"
 EXEC="$sudo docker exec -i ${DOCKER_NAME_PREFIX}nginx"
-$EXEC -- bash -c "echo 'export TERM=xterm' >>/root/.bashrc"
-$EXEC -- bash -c "echo 'cd ${BASE}' >>/root/.bashrc"
-$EXEC -- git config --global user.email "user@email.com"
-$EXEC -- git config --global user.name "Name"
-$EXEC "$BASE"/install.sh
+EXEC_GH_TOKEN="$sudo docker exec -i ${DOCKER_NAME_PREFIX}nginx env GH_TOKEN=${GH_TOKEN}"
+$EXEC bash -c "echo 'export TERM=xterm' >>/root/.bashrc"
+$EXEC bash -c "echo 'cd ${BASE}' >>/root/.bashrc"
+$EXEC git config --global user.email "user@email.com"
+$EXEC git config --global user.name "Name"
+set +x
+echo "$EXEC" "$BASE"/install.sh
+if [ "$GH_TOKEN" ]; then
+    $EXEC_GH_TOKEN "$BASE"/install.sh
+else
+    $EXEC "$BASE"/install.sh
+fi
+set -x
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI global.default_host "$HOST"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.host "$SQL_HOST"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.port "$SQL_PORT"
@@ -118,4 +127,4 @@ $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.pass "$SQL_PASS"
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.db "$SQL_DB"
 
 # Run Smoke!
-$EXEC php "$BASE"/phpunit.phar --filter=testSmoke
+$EXEC php "$BASE"/phpunit.phar -c /var/www/"$HOST"/phpunit.xml --filter=testSmoke

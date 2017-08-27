@@ -1,7 +1,7 @@
 {
     "name": "ejz/functions",
     "description": "Collections of useful PHP functions.",
-    "keywords": ["ejz", "functions", "helpers", "utils"],
+    "keywords": ["ejz", "functions", "helpers", "utilities"],
     "license": "WTFPL",
     "repositories": [
         {
@@ -17,7 +17,7 @@
         }
     ],
     "require": {
-        "php": ">=5.5.0"
+        "php": ">=5.6.0"
     },
     "autoload": {
         "files": ["functions.php"]

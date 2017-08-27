@@ -1,3 +1,0 @@
-## Getopts Examples
-
-### 

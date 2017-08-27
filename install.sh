@@ -24,10 +24,19 @@ if [ ! -f "phpunit.phar" ]; then
 fi
 
 # Composer install/update
-cd cgi
-../composer.phar install
-../composer.phar update
-cd ..
+if [ -d cgi ]; then
+    cd cgi
+    ../composer.phar config --global github-protocols https
+    [ "$GH_TOKEN" ] && ../composer.phar config -g github-oauth.github.com "$GH_TOKEN"
+    ../composer.phar install
+    ../composer.phar update
+    cd ..
+else
+    ./composer.phar config --global github-protocols https
+    [ "$GH_TOKEN" ] && ./composer.phar config -g github-oauth.github.com "$GH_TOKEN"
+    ./composer.phar install
+    ./composer.phar update
+fi
 
 # Patch NormalizerFormatter.php
 p1="cgi/vendor/monolog/monolog/src/Monolog/Formatter/NormalizerFormatter.php"
@@ -59,7 +68,10 @@ fi
 [ -x "js.min.sh" ] && ./js.min.sh
 [ -x "css.min.sh" ] && ./css.min.sh
 
-mkdir -p cgi/logs
-mkdir -p cgi/stat
+if [ -d cgi ]; then
+    mkdir -p cgi/logs
+    mkdir -p cgi/stat
+fi
 
 [ -x "cgi/cron.sh" ] && ./cgi/cron.sh
+exit 0

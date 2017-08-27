@@ -1472,7 +1472,7 @@ function ini_file_set($file, $key, $value) {
 /**
  * Transforms readable form of string to variable.
  */
-function readable_to_variable($readable, $trim = true) {
+function readable_to_variable($input, $trim = true) {
     $self = __FUNCTION__;
     if (!is_string($input)) return null;
     if ($trim) $input = trim($input);
@@ -1626,6 +1626,7 @@ function SQL() {
     }
     $sql = array_shift($args);
     $sql = trim($sql);
+    $isInsert = $isReplace = $isUpdate = $isDelete = false;
     if ($isSelect = (stripos($sql, 'select') === 0)) ;
     elseif ($isInsert = (stripos($sql, 'insert') === 0)) ;
     elseif ($isReplace = (stripos($sql, 'replace') === 0)) ;
@@ -1666,7 +1667,7 @@ function SQL() {
     ));
     if ($isInsert or $isReplace) return mysqli_insert_id($link);
     if ($isUpdate or $isDelete) return mysqli_affected_rows($link);
-    if (!is_resource($result)) return $result;
+    if (!($result instanceof mysqli_result)) return $result;
     $rows = array();
     while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) $rows[] = $row;
     mysqli_free_result($result);
