@@ -145,7 +145,16 @@ Output:
 
 Validate a hostname (an IP address or domain name).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L101-L109)
+```
+bool is_host(string $host);
+```
+
+```php
+$bool = is_host("github.com");
+// $bool => true
+```
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L110-L118)
 
 #### host
 
@@ -160,7 +169,7 @@ $host = host("https://github.com/");
 // $host => "github.com"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L123-L126)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L132-L135)
 
 #### curdate
 
@@ -177,7 +186,7 @@ $yesterday = curdate(-1);
 // $yesterday => "2017-08-16"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L142-L144)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L151-L153)
 
 #### now
 
@@ -194,7 +203,7 @@ $min_ago = now(-60);
 // $min_ago => "2017-08-17 11:03:31"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L160-L162)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L169-L171)
 
 #### nsplit
 
@@ -204,7 +213,7 @@ Split line by line given string. Each line is trimmed, empty ones are filtered o
 array nsplit(string $string);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L171-L177)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L180-L186)
 
 #### is_closure
 
@@ -219,7 +228,7 @@ $bool = is_closure(function() { ; });
 // $bool => true
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L191-L193)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L200-L202)
 
 #### is_ip
 
@@ -237,7 +246,7 @@ $bool = is_ip($ip, $allow_private = false);
 // $bool => false
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L210-L216)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L219-L225)
 
 #### is_assoc
 
@@ -262,7 +271,7 @@ $bool = is_assoc(["key" => "value"]);
 // $bool => true
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L240-L245)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L249-L254)
 
 #### is_regex
 
@@ -282,7 +291,7 @@ $bool = is_regex("~\w~");
 // $bool => true
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L264-L268)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L273-L277)
 
 #### str_replace_once
 
@@ -297,7 +306,7 @@ $str = str_replace_once("foo", "bar", "foo foo");
 // $str => "bar foo"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L282-L286)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L291-L295)
 
 #### str_truncate
 
@@ -317,7 +326,7 @@ $str = str_truncate("Hello, world!", 5, $center = true);
 // $str => "H...!"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L305-L319)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L314-L328)
 
 #### mt_shuffle
 
@@ -333,7 +342,7 @@ mt_shuffle($arr);
 // $arr => ["two", "three", "one"]
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L334-L350)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L343-L359)
 
 #### file_get_ext
 
@@ -363,7 +372,7 @@ $ext = file_get_ext("/var/www/");
 // $ext => ""
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L379-L383)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L388-L392)
 
 #### file_get_name
 
@@ -393,7 +402,7 @@ $name = file_get_name("/var/www/");
 // $name => ""
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L412-L417)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L421-L426)
 
 #### rand_from_string
 
@@ -405,20 +414,20 @@ int rand_from_string(string $string);
 
 ```php
 $int = rand_from_string("one");
-// $int => 48928
+// $int => 975299411
 ```
 
 ```php
 $int = rand_from_string("two");
-// $int => 48928
+// $int => 897156455
 ```
 
 ```php
 $int = rand_from_string("one");
-// $int => 48928
+// $int => 975299411
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L441-L447)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L450-L456)
 
 #### get_user_agent
 
@@ -448,7 +457,7 @@ var_dump(get_user_agent("Mac OS X", "seed") === get_user_agent("Mac OS X", "seed
 // => bool(true)
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L476-L493)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L485-L502)
 
 #### get_tag_attributes
 
@@ -470,7 +479,7 @@ $attr = get_tag_attributes($tag, '_target');
 // $attr => null
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L514-L532)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L523-L541)
 
 #### prepare_tag_attributes
 
@@ -492,7 +501,7 @@ $prepared = prepare_tag_attributes($attributes);
 // $prepared => "style='margin-top:0;display:flex;'"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L553-L572)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L562-L581)
 
 #### realurl
 
@@ -517,7 +526,7 @@ $url = realurl("../home.html", "http://site.com/archive/link.html");
 // $url => "http://site.com/home.html"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L596-L626)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L605-L635)
 
 #### xpath
 
@@ -555,7 +564,7 @@ Array
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L678-L769)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L687-L778)
 
 #### curl
 
@@ -574,7 +583,7 @@ echo $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L787-L964)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L796-L973)
 
 #### getopts
 
@@ -615,7 +624,7 @@ array(6) {
 
 For more examples, please, refer to [getopts.md](docs/getopts.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1004-L1094)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1013-L1103)
 
 #### to_storage
 
@@ -641,7 +650,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1119-L1164)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1128-L1173)
 
 #### latinize
 
@@ -661,7 +670,7 @@ echo latinize('привет мир', $ru = true);
 // => "privet mir"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1183-L1267)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1192-L1276)
 
 #### normalize
 
@@ -686,7 +695,7 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1291-L1303)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1300-L1312)
 
 #### config
 
@@ -708,7 +717,7 @@ $debug = config("global.debug");
 // $debug => "1"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1324-L1397)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1333-L1406)
 
 #### ini_file_set
 
@@ -736,19 +745,19 @@ debug = 0
 ; */
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1424-L1470)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1433-L1479)
 
 #### readable_to_variable
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1475-L1502)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1484-L1511)
 
 #### variable_to_readable
 
 Transform any variable to readable form.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1507-L1533)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1516-L1542)
 
 #### go_cron
 
@@ -770,91 +779,91 @@ Cron out-of-the-box. Supports Linux format.
 1,2-3,*/4 - mix
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1554-L1605)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1563-L1614)
 
 #### SQL
 
 Universal SQL wrapper.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1610-L1675)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1619-L1684)
 
 #### url_base64_encode
 
 Encode string to URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1762-L1764)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1771-L1773)
 
 #### url_base64_decode
 
 Decode from URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1769-L1771)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1778-L1780)
 
 #### xencrypt
 
 XOR encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1776-L1784)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1785-L1793)
 
 #### xdecrypt
 
 XOR decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1789-L1802)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1798-L1811)
 
 #### oencrypt
 
 Implements OpenSSL encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1807-L1813)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1816-L1822)
 
 #### odecrypt
 
 Implements OpenSSL decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1818-L1830)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1827-L1839)
 
 #### base32_decode
 
 Decode string from Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1835-L1844)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1844-L1853)
 
 #### base32_encode
 
 Encode string in Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1849-L1862)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1858-L1871)
 
 #### im_resize
 
 Resize image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1893-L1898)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1902-L1907)
 
 #### im_transparent
 
 Make the image transparent.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1903-L1908)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1912-L1917)
 
 #### im_crop
 
 Crop provided image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1913-L1927)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1922-L1936)
 
 #### im_border
 
 Draw border around image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1932-L1939)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1941-L1948)
 
 #### im_captcha
 
 Generate captcha image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1944-L2014)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1953-L2023)
 
 #### _expect
 
@@ -869,7 +878,7 @@ $a = 'string';
 _expect($a, 'string|null');
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2177-L2200)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2186-L2209)
 
 #### _log
 
@@ -882,7 +891,7 @@ If `E_USER_ERROR` is raised, exit with error code `1`.
 _log(string $msg, int $level = E_USER_NOTICE);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2212-L2232)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2221-L2241)
 
 #### _warn
 
@@ -892,7 +901,7 @@ Raise `E_USER_WARNING` with a message.
 _warn(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2241-L2243)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2250-L2252)
 
 #### _err
 
@@ -902,7 +911,7 @@ Raise `E_USER_ERROR` with a message. Exit with error code `1`.
 _err(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2252-L2254)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2261-L2263)
 
 ### Authors
 
