@@ -8,4 +8,4 @@ php:
 services:
   - docker
 
-script: test -n "$TRAVIS_TAG" || { ./deploy.sh -D && ./phpunit.phar && php ./gendoc.php && ./gitci.sh "README.md" "Update README.md [skip ci]"; }
+script: test -n "$TRAVIS_TAG" || { ./deploy.sh -D -P && php ./gendoc.php && ./gitci.sh "README.md" "Update README.md [skip ci]"; }
