@@ -19,7 +19,7 @@ foreach ($matches as $function) {
     $list[] = "- [{$function}](#{$function})";
     $pos = strpos($content, "function {$function}(");
     $lstart = substr_count(preg_replace("~^function\s+{$function}\([\s\S]*~m", '', $content), "\n") + 1;
-    $_ = preg_replace("~[\s\S]*^function\s+{$function}\(~m", '', $content);
+    $_ = preg_replace("~^function\s+{$function}\(~m", '', $content);
     $lend = substr_count(preg_replace("~^\}[\s\S]*~m", '', $_), "\n") + $lstart;
     $output[] = (
         "#### {$function}\n\n" .
