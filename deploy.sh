@@ -7,11 +7,15 @@ prefix=`basename "$this_dir"`
 prefix=`echo "$prefix" | awk '{print tolower($0)}'`
 defaults=""
 phpunit=""
-if [ "$1" == "-D" -o "$2" == "-D" ]; then
+login=""
+if [ "$1" == "-D" -o "$2" == "-D" -o "$3" == "-D" ]; then
     defaults="yes"
 fi
-if [ "$1" == "-P" -o "$2" == "-P" ]; then
+if [ "$1" == "-P" -o "$2" == "-P" -o "$3" == "-P" ]; then
     phpunit="yes"
+fi
+if [ "$1" == "-L" -o "$2" == "-L" -o "$3" == "-L" ]; then
+    login="yes"
 fi
 
 sudo=""
@@ -58,6 +62,10 @@ for var in "${vars[@]}"; do
     mkdir -p vars
     echo "$temp" >"vars/${one}"
     eval export "$one"='$temp'
+    if [ "$one" == "DOCKER_NAME_PREFIX" -a "$login" ]; then
+        $sudo docker exec -ti "${DOCKER_NAME_PREFIX}nginx" bash
+        exit
+    fi
 done
 
 rm -f local.ini cgi/local.ini

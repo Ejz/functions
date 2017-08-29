@@ -147,23 +147,27 @@ foreach ($logger as $name => $level) {
 // ----- //
 
 $sql = config("sql");
-SQL(
-    @ $sql['host'],
-    @ $sql['user'],
-    @ $sql['pass'],
-    @ $sql['db'],
-    @ $sql['port']
-);
+if ($sql)
+    SQL(
+        @ $sql['host'],
+        @ $sql['user'],
+        @ $sql['pass'],
+        @ $sql['db'],
+        @ $sql['port']
+    );
 
 // ----------- //
 //  Redis (R)  //
 // ----------- //
 
 $redis = config("redis");
-R(
-    @ $redis['connection'],
-    @ $redis['timeout']
-);
+if ($redis)
+    R(
+        @ $redis['host'],
+        @ $redis['port'],
+        @ $redis['auth'],
+        @ $redis['db']
+    );
 
 // ------- //
 //  Cache  //
