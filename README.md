@@ -791,79 +791,79 @@ Universal SQL wrapper.
 
 Encode string to URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1771-L1773)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1788-L1790)
 
 #### url_base64_decode
 
 Decode from URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1778-L1780)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1795-L1797)
 
 #### xencrypt
 
 XOR encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1785-L1793)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1802-L1810)
 
 #### xdecrypt
 
 XOR decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1798-L1811)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1815-L1828)
 
 #### oencrypt
 
 Implements OpenSSL encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1816-L1822)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1833-L1839)
 
 #### odecrypt
 
 Implements OpenSSL decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1827-L1839)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1844-L1856)
 
 #### base32_decode
 
 Decode string from Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1844-L1853)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1861-L1870)
 
 #### base32_encode
 
 Encode string in Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1858-L1871)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1875-L1888)
 
 #### im_resize
 
 Resize image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1902-L1907)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1919-L1924)
 
 #### im_transparent
 
 Make the image transparent.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1912-L1917)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1929-L1934)
 
 #### im_crop
 
 Crop provided image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1922-L1936)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1939-L1953)
 
 #### im_border
 
 Draw border around image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1941-L1948)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1958-L1965)
 
 #### im_captcha
 
 Generate captcha image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1953-L2023)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1970-L2040)
 
 #### _expect
 
@@ -878,7 +878,7 @@ $a = 'string';
 _expect($a, 'string|null');
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2186-L2209)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2203-L2226)
 
 #### _log
 
@@ -891,7 +891,7 @@ If `E_USER_ERROR` is raised, exit with error code `1`.
 _log(string $msg, int $level = E_USER_NOTICE);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2221-L2241)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2238-L2258)
 
 #### _warn
 
@@ -901,7 +901,7 @@ Raise `E_USER_WARNING` with a message.
 _warn(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2250-L2252)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2267-L2269)
 
 #### _err
 
@@ -911,7 +911,7 @@ Raise `E_USER_ERROR` with a message. Exit with error code `1`.
 _err(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2261-L2263)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2278-L2280)
 
 ### Authors
 
