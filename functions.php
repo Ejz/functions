@@ -1686,24 +1686,42 @@ function SQL() {
 function R() {
     static $link;
     if (is_array($link)) {
-        $parsed = parse_url($link[0]);
-        if (empty($parsed['scheme']) or empty($parsed['host']) or empty($parsed['port']) or $parsed['scheme'] != 'redis')
-            _err(__FUNCTION__ . ': Invalid connection string!');
-        $link = fsockopen($parsed['host'], $parsed['port'], $errno, $errstr);
-        if ($link === false)
+        $args = [
+            'host' => $link[0],
+            'port' => $link[1],
+            'auth' => $link[2],
+            'db' => $link[3],
+        ];
+        if (extension_loaded('Redis')) {
+            $link = new \Redis();
+            $res = $link->connect($args['host'], $args['port'], 2);
+            $errstr = 'using Redis class';
+        } else {
+            @ $link = fsockopen($args['host'], $args['port'], $errno, $errstr, 2);
+        }
+        if (!$link or (isset($res) and !$res))
             _err(__FUNCTION__ . ': Connection failed - ' . trim($errstr));
-        if (!empty($parsed['pass'])) {
-            $res = call_user_func(__FUNCTION__, 'AUTH', $parsed['pass']);
-            if (!$res) _err(__FUNCTION__ . ': Login failed!');
+        if ($args['auth']) {
+            $res = call_user_func(__FUNCTION__, 'AUTH', $args['auth']);
+            if (!$res) _err(__FUNCTION__ . ': AUTH failed!');
+        }
+        if (is_numeric($args['db'])) {
+            $res = call_user_func(__FUNCTION__, 'SELECT', $args['db']);
+            if (!$res) _err(__FUNCTION__ . ': SELECT failed!');
         }
     }
     $n = func_num_args();
-    if (!$n and !is_resource($link)) _err("REDIS CONNECTION IS NOT DEFINED!");
+    if (!$n and !is_resource($link) and !is_object($link))
+        _err("REDIS CONNECTION IS NOT DEFINED!");
     if (!$n) return $link;
     $args = func_get_args();
     if (is_null($link)) {
         $link = $args;
         return;
+    }
+    if (is_object($link)) {
+        $method = array_shift($args);
+        return call_user_func_array([$link, $method], $args);
     }
     $function = __FUNCTION__;
     $read = function () use (& $read, & $link, $function) {

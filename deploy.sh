@@ -4,6 +4,7 @@ this=`readlink -fe "$0"`
 this_dir=`dirname "$this"`
 cd "$this_dir"
 prefix=`basename "$this_dir"`
+prefix=`echo "$prefix" | awk '{print tolower($0)}'`
 defaults=""
 phpunit=""
 if [ "$1" == "-D" -o "$2" == "-D" ]; then
@@ -124,11 +125,13 @@ else
 fi
 set -x
 $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI global.default_host "$HOST"
-$EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.host "$SQL_HOST"
-$EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.port "$SQL_PORT"
-$EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.user "$SQL_USER"
-$EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.pass "$SQL_PASS"
-$EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.db "$SQL_DB"
+if [ "$SQL_HOST" != "no" ]; then
+    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.host "$SQL_HOST"
+    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.port "$SQL_PORT"
+    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.user "$SQL_USER"
+    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.pass "$SQL_PASS"
+    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.db "$SQL_DB"
+fi
 
 if [ "$phpunit" ]; then
     $EXEC php "$BASE"/phpunit.phar -c /var/www/"$HOST"/phpunit.xml
