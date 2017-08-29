@@ -8,14 +8,18 @@ prefix=`echo "$prefix" | awk '{print tolower($0)}'`
 defaults=""
 phpunit=""
 login=""
-if [ "$1" == "-D" -o "$2" == "-D" -o "$3" == "-D" ]; then
+test=""
+if [ "$1" == "-D" -o "$2" == "-D" -o "$3" == "-D" -o "$4" == "-D" ]; then
     defaults="yes"
 fi
-if [ "$1" == "-P" -o "$2" == "-P" -o "$3" == "-P" ]; then
+if [ "$1" == "-P" -o "$2" == "-P" -o "$3" == "-P" -o "$4" == "-P" ]; then
     phpunit="yes"
 fi
-if [ "$1" == "-L" -o "$2" == "-L" -o "$3" == "-L" ]; then
+if [ "$1" == "-L" -o "$2" == "-L" -o "$3" == "-L" -o "$4" == "-L" ]; then
     login="yes"
+fi
+if [ "$1" == "-T" -o "$2" == "-T" -o "$3" == "-T" -o "$4" == "-T" ]; then
+    test="yes"
 fi
 
 sudo=""
@@ -64,6 +68,11 @@ for var in "${vars[@]}"; do
     eval export "$one"='$temp'
     if [ "$one" == "DOCKER_NAME_PREFIX" -a "$login" ]; then
         $sudo docker exec -ti "${DOCKER_NAME_PREFIX}nginx" bash
+        exit
+    fi
+    if [ "$one" == "DOCKER_NAME_PREFIX" -a "$test" ]; then
+        $sudo docker exec -ti "${DOCKER_NAME_PREFIX}nginx" \
+            php /var/www/"$HOST"/phpunit.phar -c /var/www/"$HOST"/phpunit.xml
         exit
     fi
 done

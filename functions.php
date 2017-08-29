@@ -1765,9 +1765,8 @@ function R() {
         }
         _err($function . ': Unknown response!');
     };
-    $call = function ($name, $args) {
+    $call = function ($args) use ($link) {
         $crlf = "\r\n";
-        array_unshift($args, $name);
         $cmd = sprintf('*%d%s%s%s', count($args), $crlf, implode(
             array_map(function ($arg) use ($crlf) {
                 return sprintf('$%d%s%s', strlen($arg), $crlf, $arg);
@@ -1779,7 +1778,7 @@ function R() {
                 _err(__FUNCTION__ . ': WRITE ERROR!!');
         }
     };
-    call_user_func_array($call, $args);
+    call_user_func($call, $args);
     return $read();
 }
 
