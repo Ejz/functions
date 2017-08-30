@@ -1,5 +1,6 @@
 composer.lock
-vendor/*
+vendor
+old
 composer.phar
 phpunit.phar
 local.ini
@@ -9,3 +10,5 @@ local.ini
 /www/css/*.css.map
 /www/css/sass.log
 /www/css/sass.pid
+*.sublime-project
+*.sublime-workspace
