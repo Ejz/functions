@@ -981,11 +981,11 @@ function curl($urls, $settings = array()) {
  *
  * ```php
  * $opts = getopts([
- *     'a' => false,     // short, no value
- *     'b' => true,      // short, with value
- *     'help' => false,  // long, no value
- *     'filter' => true, // long, with value
- * ], explode(' ', './script.sh -ab1 arg --help --filter=value'));
+ *     "a" => false,     // short, no value
+ *     "b" => true,      // short, with value
+ *     "help" => false,  // long, no value
+ *     "filter" => true, // long, with value
+ * ], explode(" ", "./script.sh -ab1 arg --help --filter=value"));
  * var_dump($opts);
  * ```
  *
@@ -1059,7 +1059,7 @@ function getopts($opts, $argv = null) {
             continue;
         }
         // Short or long without value
-        if (preg_match('~^-([a-zA-Z0-9])$~', $arg, $match) or preg_match('~^--([a-z0-9][a-z0-9-]+)$~', $arg, $match)) {
+        if (preg_match('~^-([a-zA-Z0-9])$~', $arg, $match) or preg_match('~^--([a-zA-Z0-9][a-zA-Z0-9-]+)$~', $arg, $match)) {
             $arg = $match[1];
             if (isset($opts[$arg]['alias']))
                 $arg = $opts[$arg]['alias'];
@@ -1080,7 +1080,7 @@ function getopts($opts, $argv = null) {
             continue;
         }
         // Split long
-        if (preg_match('~^--([a-z0-9-]+)=(.*)$~', $arg, $match)) {
+        if (preg_match('~^--([a-zA-Z0-9-]+)=(.*)$~', $arg, $match)) {
             if (isset($opts[$match[1]]) and !$opts[$match[1]]['value'])
                 return str_replace('%arg', $match[1], GETOPTS_FUNCTION_EXPECT_NOVALUE);
             array_splice($argv, $i, 1, array('--' . $match[1], $match[2]));
@@ -1088,7 +1088,7 @@ function getopts($opts, $argv = null) {
             continue;
         }
         // Split short
-        if (preg_match('~^-([a-z])(.*)$~', $arg, $match)) {
+        if (preg_match('~^-([a-zA-Z])(.*)$~', $arg, $match)) {
             $arg = $match[1];
             if (!isset($opts[$arg]))
                 return str_replace('%arg', $arg, GETOPTS_FUNCTION_UNKNOWN);
