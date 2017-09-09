@@ -1019,6 +1019,7 @@ function getopts($opts, $argv = null) {
     $raw = false;
     foreach ($opts as & $opt) {
         if (is_bool($opt)) $opt = ['value' => $opt];
+        if (is_string($opt)) $opt = ['alias' => $opt];
         $opt = $opt + [
             'value' => false,
             'multiple' => false,
@@ -1060,6 +1061,8 @@ function getopts($opts, $argv = null) {
         // Short or long without value
         if (preg_match('~^-([a-zA-Z0-9])$~', $arg, $match) or preg_match('~^--([a-z0-9][a-z0-9-]+)$~', $arg, $match)) {
             $arg = $match[1];
+            if (isset($opts[$arg]['alias']))
+                $arg = $opts[$arg]['alias'];
             if (!isset($opts[$arg]))
                 return str_replace(
                     ['%arg'],

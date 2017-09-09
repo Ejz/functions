@@ -57,6 +57,9 @@ class TestGetopts extends PHPUnit_Framework_TestCase {
         $opts = getopts(array('a' => true), array('./execute', '-a '));
         $this->assertEquals(" ", $opts['a']);
         //
+        $opts = getopts(array('a' => true, 'b' => false), array('./execute', '-baASD'));
+        $this->assertEquals("ASD", $opts['a']);
+        //
         $opts = getopts(array('r' => true), array('./execute', '-r', "//text()"));
         $this->assertEquals("//text()", $opts['r']);
         //
@@ -69,5 +72,16 @@ class TestGetopts extends PHPUnit_Framework_TestCase {
         //
         $opts = getopts(array(), explode(' ', './execute -_'));
         $this->assertTrue(is_string($opts));
+        //
+        $opts = getopts(array('a' => true, 'A' => 'a'), array('./execute', '-a', '1', '-A', '2'));
+        $this->assertEquals("2", $opts['a']);
+        //
+        $opts = getopts(array('a' => ['multiple' => true, 'value' => true], 'A' => 'a'), array('./execute', '-a', '1', '-A', '2'));
+        $this->assertEquals(['1', '2'], $opts['a']);
+        //
+        $opts = getopts(array('a' => ['multiple' => true], 'A' => 'a'), array('./execute', '-a', '1', '-A', '2'));
+        $this->assertEquals([true, true], $opts['a']);
+        $this->assertEquals('1', $opts['1']);
+        $this->assertEquals('2', $opts['2']);
     }
 }
