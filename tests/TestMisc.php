@@ -275,6 +275,10 @@ TEMPLATE;
         //
         $this->assertTrue(realurl("//site.com", 'https://site2.com') === "https://site.com/");
         $this->assertTrue(realurl("//site.com", '//site2.com') === "http://site.com/");
+        //
+        $this->assertTrue(realurl("../text.md", "path/a/new.md") === "path/text.md");
+        $this->assertTrue(realurl("../../text.md", "path/a/new.md") === "text.md");
+        $this->assertTrue(realurl("../../../text.md", "path/a/new.md") === "../text.md");
     }
     public function testMiscLatinize() {
         $this->assertTrue(latinize('ÁΓă') === "AGa");

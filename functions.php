@@ -581,10 +581,11 @@ function prepare_tag_attributes($attributes) {
 }
 
 /**
- * Get absolute URL, also lead URL to more canonical form.
+ * Get absolute URL, lead URL to more canonical form. Also operates with files. 
+ * `$url` is canonized according to `$relative` (file or URL). In case of error returns empty string.
  *
  * ```
- * string|null realurl(string $url, string $absolute = '');
+ * string realurl(string $url, string $relative = '');
  * ```
  *
  * ```php
@@ -601,37 +602,47 @@ function prepare_tag_attributes($attributes) {
  * $url = realurl("../home.html", "http://site.com/archive/link.html");
  * // $url => "http://site.com/home.html"
  * ```
+  *
+ * ```php
+ * $url = realurl("../new.md", "path/a/old.md");
+ * // $url => "path/new.md"
+ * ```
  */
-function realurl($url, $absolute = '') {
-    if (!host($absolute) and !host($url)) return null;
-    if (strpos($url, '#') === 0) return null;
-    if (strpos($url, 'javascript:') === 0) return null;
-    if (strpos($url, 'mailto:') === 0) return null;
-    if (strpos($url, 'skype:') === 0) return null;
-    if (strpos($url, 'data:') === 0) return null;
-    if (!parse_url($url, PHP_URL_SCHEME) and host($absolute) and host($url))
-        $url = (parse_url($absolute, PHP_URL_SCHEME) ?: 'http') . ':' . $url;
+function realurl($url, $relative = '') {
+    if (strpos($url, '#') === 0) return '';
+    if (strpos($url, 'javascript:') === 0) return '';
+    if (strpos($url, 'mailto:') === 0) return '';
+    if (strpos($url, 'skype:') === 0) return '';
+    if (strpos($url, 'data:') === 0) return '';
+    $scheme = function ($_) {
+        return parse_url($_, PHP_URL_SCHEME);
+    };
+    if (host($relative) and host($url) and !$scheme($url))
+        $url = ($scheme($relative) ?: 'http') . ':' . $url;
     $normalize = function ($url) {
         $parse = parse_url($url);
-        if (!$parse) return null;
-        $url = substr($url, strlen("{$parse['scheme']}://{$parse['host']}"));
-        if (!$url) $url = '/';
+        $head = '';
+        if (isset($parse['scheme'])) {
+            $head = "{$parse['scheme']}://{$parse['host']}";
+            $url = substr($url, strlen($head));
+            if (!$url) $url = '/';
+            $url = preg_replace('~\?+$~', '', $url);
+        } elseif (!$url) return '';
         do {
             $old = $url;
             $url = preg_replace('~/+~', '/', $url);
             $url = preg_replace('~/\./~', '/', $url);
-            $url = preg_replace('~/[^/]+/\.\./~', '/', $url);
+            $url = preg_replace('~(^|/)[^/]+/\.\./~', '$1', $url);
             $url = preg_replace('~^/\.\./~', '/', $url);
-            $url = preg_replace('~\?+$~', '', $url);
         } while ($old != $url);
-        return "{$parse['scheme']}://{$parse['host']}{$url}";
+        return $head . $url;
     };
     if (host($url)) return $normalize($url);
     if (strpos($url, '/') === 0)
-        return $normalize(preg_replace('~(?<!/)/(?!/).*$~', '', $absolute) . $url);
+        return $normalize(preg_replace('~(?<!/)/(?!/).*$~', '', $relative) . $url);
     if (strpos($url, '?') === 0)
-        return $normalize(preg_replace('~\?.*$~', '', $absolute) . $url);
-    return $normalize(preg_replace('~/[^/]+$~', '/', $absolute) . $url);
+        return $normalize(preg_replace('~\?.*$~', '', $relative) . $url);
+    return $normalize(preg_replace('~/[^/]+$~', '/', $relative) . $url);
 }
 
 function xpath_callback_remove($tag) {
