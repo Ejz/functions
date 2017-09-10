@@ -595,11 +595,11 @@ array|string getopts(array $opts, array|null $argv = null);
 
 ```php
 $opts = getopts([
-    'a' => false,     // short, no value
-    'b' => true,      // short, with value
-    'help' => false,  // long, no value
-    'filter' => true, // long, with value
-], explode(' ', './script.sh -ab1 arg --help --filter=value'));
+    "a" => false,     // short, no value
+    "b" => true,      // short, with value
+    "help" => false,  // long, no value
+    "filter" => true, // long, with value
+], explode(" ", "./script.sh -ab1 arg --help --filter=value"));
 var_dump($opts);
 ```
 
