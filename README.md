@@ -505,10 +505,11 @@ $prepared = prepare_tag_attributes($attributes);
 
 #### realurl
 
-Get absolute URL, also lead URL to more canonical form.
+Get absolute URL, lead URL to more canonical form. Also operates with files. 
+`$url` is canonized according to `$relative` (file or URL). In case of error returns empty string.
 
 ```
-string|null realurl(string $url, string $absolute = '');
+string realurl(string $url, string $relative = '');
 ```
 
 ```php
@@ -526,7 +527,12 @@ $url = realurl("../home.html", "http://site.com/archive/link.html");
 // $url => "http://site.com/home.html"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L605-L635)
+```php
+$url = realurl("../new.md", "path/a/old.md");
+// $url => "path/new.md"
+```
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L611-L646)
 
 #### xpath
 
@@ -564,7 +570,7 @@ Array
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L687-L778)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L698-L789)
 
 #### curl
 
@@ -583,7 +589,7 @@ echo $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L796-L973)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L807-L984)
 
 #### getopts
 
@@ -624,7 +630,7 @@ array(6) {
 
 For more examples, please, refer to [getopts.md](docs/getopts.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1013-L1106)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1024-L1117)
 
 #### to_storage
 
@@ -650,7 +656,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1131-L1176)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1142-L1187)
 
 #### latinize
 
@@ -670,7 +676,7 @@ echo latinize('привет мир', $ru = true);
 // => "privet mir"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1195-L1279)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1206-L1290)
 
 #### normalize
 
@@ -695,7 +701,7 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1303-L1315)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1314-L1326)
 
 #### config
 
@@ -717,7 +723,7 @@ $debug = config("global.debug");
 // $debug => "1"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1336-L1409)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1347-L1420)
 
 #### ini_file_set
 
@@ -745,19 +751,19 @@ debug = 0
 ; */
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1436-L1482)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1447-L1493)
 
 #### readable_to_variable
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1487-L1514)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1498-L1525)
 
 #### variable_to_readable
 
 Transform any variable to readable form.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1519-L1545)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1530-L1556)
 
 #### go_cron
 
@@ -779,91 +785,91 @@ Cron out-of-the-box. Supports Linux format.
 1,2-3,*/4 - mix
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1566-L1617)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1577-L1628)
 
 #### SQL
 
 Universal SQL wrapper.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1622-L1687)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1633-L1698)
 
 #### url_base64_encode
 
 Encode string to URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1791-L1793)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1802-L1804)
 
 #### url_base64_decode
 
 Decode from URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1798-L1800)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1809-L1811)
 
 #### xencrypt
 
 XOR encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1805-L1813)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1816-L1824)
 
 #### xdecrypt
 
 XOR decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1818-L1831)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1829-L1842)
 
 #### oencrypt
 
 Implements OpenSSL encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1836-L1842)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1847-L1853)
 
 #### odecrypt
 
 Implements OpenSSL decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1847-L1859)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1858-L1870)
 
 #### base32_decode
 
 Decode string from Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1864-L1873)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1875-L1884)
 
 #### base32_encode
 
 Encode string in Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1878-L1891)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1889-L1902)
 
 #### im_resize
 
 Resize image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1922-L1927)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1933-L1938)
 
 #### im_transparent
 
 Make the image transparent.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1932-L1937)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1943-L1948)
 
 #### im_crop
 
 Crop provided image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1942-L1956)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1953-L1967)
 
 #### im_border
 
 Draw border around image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1961-L1968)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1972-L1979)
 
 #### im_captcha
 
 Generate captcha image.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1973-L2043)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1984-L2054)
 
 #### _expect
 
@@ -878,7 +884,7 @@ $a = 'string';
 _expect($a, 'string|null');
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2206-L2229)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2217-L2240)
 
 #### _log
 
@@ -891,7 +897,7 @@ If `E_USER_ERROR` is raised, exit with error code `1`.
 _log(string $msg, int $level = E_USER_NOTICE);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2241-L2261)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2252-L2272)
 
 #### _warn
 
@@ -901,7 +907,7 @@ Raise `E_USER_WARNING` with a message.
 _warn(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2270-L2272)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2281-L2283)
 
 #### _err
 
@@ -911,7 +917,7 @@ Raise `E_USER_ERROR` with a message. Exit with error code `1`.
 _err(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2281-L2283)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2292-L2294)
 
 ### Authors
 
