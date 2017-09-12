@@ -2226,8 +2226,10 @@ function _expect($var, $types) {
     $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
     $debug = array_slice($debug, 1);
     $debug = array_map(function ($arg) use (& $first) {
-        $file = basename($arg['file']);
-        return "{$arg['function']}@{$file}:{$arg['line']}";
+        $tail = '';
+        if (isset($arg['file']))
+            $tail = '@' . basename($arg['file']) . ':' . $arg['line'];
+        return $arg['function'] . $tail;
     }, $debug);
     $debug = implode(', ', $debug);
     $expected = implode(', ', $expected);
