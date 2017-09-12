@@ -884,7 +884,7 @@ $a = 'string';
 _expect($a, 'string|null');
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2217-L2240)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2217-L2242)
 
 #### _log
 
@@ -897,7 +897,7 @@ If `E_USER_ERROR` is raised, exit with error code `1`.
 _log(string $msg, int $level = E_USER_NOTICE);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2252-L2272)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2254-L2274)
 
 #### _warn
 
@@ -907,7 +907,7 @@ Raise `E_USER_WARNING` with a message.
 _warn(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2281-L2283)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2283-L2285)
 
 #### _err
 
@@ -917,7 +917,7 @@ Raise `E_USER_ERROR` with a message. Exit with error code `1`.
 _err(string $msg);
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2292-L2294)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2294-L2296)
 
 ### Authors
 
