@@ -77,7 +77,9 @@ for var in "${vars[@]}"; do
     fi
 done
 
-rm -f local.ini cgi/local.ini
+$sudo rm -f local.ini cgi/local.ini
+$sudo rm -rf vendor cgi/vendor
+$sudo rm -f composer.phar phpunit.phar
 list=`$sudo docker ps -a --filter "name=^/${DOCKER_NAME_PREFIX}" | awk '{print $1}' | tail -n +2`
 if [ "$list" ]; then
     echo "Delete Docker containers with prefix ${DOCKER_NAME_PREFIX}:"

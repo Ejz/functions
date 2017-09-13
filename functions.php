@@ -2255,7 +2255,7 @@ function _log($msg, $level = E_USER_NOTICE) {
     static $console = null;
     if (is_null($console))
         $console = (defined('STDIN') and defined('STDERR'));
-    if ($console) {
+    if ($console and error_reporting()) {
         if ($level === E_USER_NOTICE) $type = 'E_USER_NOTICE';
         elseif ($level === E_USER_WARNING) $type = 'E_USER_WARNING';
         elseif ($level === E_USER_ERROR) $type = 'E_USER_ERROR';
