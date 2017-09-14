@@ -642,7 +642,7 @@ function realurl($url, $relative = '') {
         return $normalize(preg_replace('~(?<!/)/(?!/).*$~', '', $relative) . $url);
     if (strpos($url, '?') === 0)
         return $normalize(preg_replace('~\?.*$~', '', $relative) . $url);
-    return $normalize(preg_replace('~/[^/]+$~', '/', $relative) . $url);
+    return $normalize(preg_replace('~(/)?[^/]+$~', '$1', $relative) . $url);
 }
 
 function xpath_callback_remove($tag) {
