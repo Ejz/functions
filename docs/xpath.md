@@ -1,6 +1,6 @@
-## `xpath()` Examples
+## xpath
 
-### Extract a tag by class name
+### Find by class name
 
 ```php
 $xml = "<root><a class='one findme two'>1</a><b>2</b><c>3</c></root>";
@@ -17,7 +17,7 @@ Array
 )
 ```
 
-### Remove a tag
+### Remove tag
 
 ```php
 $xml = "<root><a>1</a><b>2</b><c>3</c></root>";
