@@ -84,23 +84,24 @@ for var in "${vars[@]}"; do
     eval export "$one"='$temp'
 done
 
-if test "$test"; then
-    exec=("php" "/var/www/${HOST}/phpunit.phar" "-c" "/var/www/${HOST}/phpunit.xml")
-fi
-
-if test "$login"; then
-    exec=("bash")
-fi
-
 BASE="/var/www/${HOST}"
 CGI="$BASE"
 [ -d cgi ] && CGI="${BASE}/cgi"
 [ -t 0 ] && t="t"
-EXEC="$sudo docker exec -i${t} ${DOCKER_NAME_PREFIX}nginx"
+EXEC="$sudo docker exec -i ${DOCKER_NAME_PREFIX}nginx"
+EXEC_T="$sudo docker exec -i${t} ${DOCKER_NAME_PREFIX}nginx"
 EXEC_GH_TOKEN="$sudo docker exec -i${t} ${DOCKER_NAME_PREFIX}nginx env GH_TOKEN=${GH_TOKEN}"
 
+if test "$test"; then
+    exec=($EXEC "php" "/var/www/${HOST}/phpunit.phar" "-c" "/var/www/${HOST}/phpunit.xml")
+fi
+
+if test "$login"; then
+    exec=($EXEC_T "bash")
+fi
+
 if [ "${#exec[@]}" -gt 0 ] && $sudo docker ps --filter "name=^/${DOCKER_NAME_PREFIX}nginx" | grep -q "$DOCKER_NAME_PREFIX"nginx; then
-    $EXEC "${exec[@]}"
+    "${exec[@]}"
     exit "$?"
 fi
 
@@ -176,6 +177,6 @@ if [ "$SQL_HOST" != "no" ]; then
 fi
 
 if [ "${#exec[@]}" -gt 0 ]; then
-    $EXEC "${exec[@]}"
+    "${exec[@]}"
     exit "$?"
 fi

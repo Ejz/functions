@@ -703,6 +703,7 @@ function xpath($xml, $query = '/*', $callback = null, $flags = array()) {
     $flags = $flags + [
         'preserve_white_space' => false,
         'ignore_fix' => false,
+        'implode' => false,
     ];
     if (is_string($xml) and !$flags['ignore_fix']) {
         // FIX HTML TO BE COMPATIBLE WITH XML
@@ -785,7 +786,7 @@ function xpath($xml, $query = '/*', $callback = null, $flags = array()) {
     $return = array();
     foreach ($tags as $tag)
         $return[] = $doc->saveXML($tag);
-    return func_num_args() === 1 ? implode('', $return) : $return;
+    return (func_num_args() === 1 or $flags['implode']) ? implode('', $return) : $return;
 }
 
 /**

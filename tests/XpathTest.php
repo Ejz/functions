@@ -5,12 +5,19 @@ class XpathTest extends PHPUnit_Framework_TestCase {
         $xml = "<root> <img> 1 </img> </root>";
         list($_) = xpath($xml, '/*', null, ['ignore_fix' => true]);
         $this->assertRegexp("~^\s*<root>\s*<img>\s*1\s*</img>\s*</root>\s*$~", $_);
-
         //
         $xml = "<root> <a> 1 </a> <b>2</b> </root>";
         list($_) = xpath($xml, '/*');
         $this->assertRegexp("~^\s*<root>\s*<a> 1 </a>\s*<b>2</b>\s*</root>\s*$~", $_);
         $_ = xpath($xml);
+        $this->assertRegexp("~^\s*<root>\s*<a> 1 </a>\s*<b>2</b>\s*</root>\s*$~", $_);
+        list($_) = xpath($xml, '//a/text()');
+        $this->assertEquals(' 1 ', $_);
+        //
+        $xml = "<root> <a> 1 </a> <b>2</b> </root>";
+        list($_) = xpath($xml, '/*');
+        $this->assertRegexp("~^\s*<root>\s*<a> 1 </a>\s*<b>2</b>\s*</root>\s*$~", $_);
+        $_ = xpath($xml, '/*', null, ['implode' => true]);
         $this->assertRegexp("~^\s*<root>\s*<a> 1 </a>\s*<b>2</b>\s*</root>\s*$~", $_);
         list($_) = xpath($xml, '//a/text()');
         $this->assertEquals(' 1 ', $_);
