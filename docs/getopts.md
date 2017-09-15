@@ -1,4 +1,4 @@
-## Getopts
+## getopts
 
 ### Arguments with single value
 
