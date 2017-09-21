@@ -2,6 +2,7 @@
 
 class TestGetopts extends PHPUnit_Framework_TestCase {
     public function testGetopts() {
+        $time = microtime(true);
         $opts = getopts(array(
             'c' => false,
             'b' => false,
@@ -83,5 +84,14 @@ class TestGetopts extends PHPUnit_Framework_TestCase {
         $this->assertEquals([true, true], $opts['a']);
         $this->assertEquals('1', $opts['1']);
         $this->assertEquals('2', $opts['2']);
+        //
+        $opts = getopts(array('filter' => true, 'long' => false, 'f' => true), array('./execute', '-fil', '-filter', 'f', '-long'));
+        $this->assertEquals('il', $opts['f']);
+        $this->assertEquals('f', $opts['filter']);
+        $this->assertEquals(true, $opts['long']);
+        //
+        $opts = getopts(array('auth' => false, 'no-auth' => false), array('./execute', '-no-auth', '-auth', '-no-auth'));
+        $keys = array_keys($opts);
+        $this->assertTrue(array_search('auth', $keys, true) < array_search('no-auth', $keys, true));
     }
 }

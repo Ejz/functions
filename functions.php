@@ -1044,6 +1044,7 @@ function getopts($opts, $argv = null) {
             continue;
         }
         if ($next and $raw) {
+            unset($collect[$next]);
             $collect[$next] = $arg;
             $next = null;
             continue;
@@ -1066,6 +1067,7 @@ function getopts($opts, $argv = null) {
             continue;
         }
         if ($next) {
+            unset($collect[$next]);
             $collect[$next] = $arg;
             $next = null;
             continue;
@@ -1087,6 +1089,7 @@ function getopts($opts, $argv = null) {
                 if (!isset($collect[$arg])) $collect[$arg] = [];
                 $collect[$arg][] = true;
             } else {
+                unset($collect[$arg]);
                 $collect[$arg] = true;
             }
             continue;
@@ -1101,6 +1104,11 @@ function getopts($opts, $argv = null) {
         }
         // Split short
         if (preg_match('~^-([a-zA-Z])(.*)$~', $arg, $match)) {
+            if (isset($opts[$match[1] . $match[2]])) {
+                array_splice($argv, $i, 1, array('--' . $match[1] . $match[2]));
+                $i--;
+                continue;
+            }
             $arg = $match[1];
             if (!isset($opts[$arg]))
                 return str_replace('%arg', $arg, GETOPTS_FUNCTION_UNKNOWN);
@@ -2204,10 +2212,11 @@ function crawler($urls, $settings) {
 }
 
 /**
- * Raise an error, if given variable does not match type.
+ * Raise an error, if given variable does not match type. 
+ * In case of `$fatal` is `false`, raise a warning.
  *
  * ```
- * _expect(mixed $var, string $types);
+ * bool _expect(mixed $var, string $types, bool $fatal = true);
  * ```
  *
  * ```php
@@ -2215,17 +2224,17 @@ function crawler($urls, $settings) {
  * _expect($a, 'string|null');
  * ```
  */
-function _expect($var, $types) {
+function _expect($var, $types, $fatal = true) {
     $expected = [];
     $types = explode('|', $types);
     foreach ($types as $type) {
         $function = ($type === 'boolean' ? 'is_bool' : 'is_' . $type);
         $flag = function_exists($function);
-        if ($flag ? $function($var) : is_a($var, $type)) return;
+        if ($flag ? $function($var) : is_a($var, $type)) return true;
         $expected[] = $type . ($flag ? '' : ' object');
     }
-    $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
-    $debug = array_slice($debug, 1);
+    $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
+    $debug = array_slice($debug, 0);
     $debug = array_map(function ($arg) use (& $first) {
         $tail = '';
         if (isset($arg['file']))
@@ -2235,11 +2244,13 @@ function _expect($var, $types) {
     $debug = implode(', ', $debug);
     $expected = implode(', ', $expected);
     $given = (is_object($var) ? get_class($var) . ' ' : '') . gettype($var);
-    _err(str_replace(
+    $msg = str_replace(
         ['%expected', '%given', '%debug'],
         [$expected, $given, $debug],
         EXPECT_FUNCTION_ERR_MSG
-    ));
+    );
+    if ($fatal) _err($msg);
+    return _warn($msg);
 }
 
 /**
