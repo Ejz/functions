@@ -21,6 +21,16 @@ Array
 )
 ```
 
+### Long arguments
+
+Can have 3 different forms:
+
+* `--long=value`
+* `--long`
+* `-long`
+
+Please, note, that variant with one `-` in some cases can be ambibuous.
+
 ### Arguments with multiple value
 
 ```php
@@ -78,6 +88,44 @@ Array
             [1] => bar
         )
 )
+```
+
+### Exclusive arguments
+
+There are situations when some arguments are mutually exclusive. For example, one argument enables (`--enable`), another disables (`--disable`).
+
+```php
+$argv = explode(" ", "./exec.sh --enable --disable --enable");
+$opts = getopts([
+    'enable' => false,
+    'disable' => false,
+], $argv);
+print_r($opts);
+```
+
+Output:
+
+```
+Array
+(
+    [0] => ./exec.sh
+    [disable] => true
+    [enable] => true
+)
+```
+
+In this case, refer to argument positioning inside associative array.
+
+```php
+$def = true; // default
+$keys = array_keys($opts);
+$e = !empty($opts['enable']);
+$d = !empty($opts['disable']);
+$is_enabled =
+    ($def and !$e and !$d) or
+    ($e and !$d) or
+    ($e and $d and (array_search('enable', $keys, true) > array_search('disable', $keys, true)))
+;
 ```
 
 ### Possible errors
