@@ -29,7 +29,7 @@ Can have 3 different forms:
 * `--long`
 * `-long`
 
-Please, note, that variant with one `-` in some cases can be ambibuous.
+Please, note, that variant with one `-` in some cases can be ambiguous.
 
 ### Arguments with multiple value
 
