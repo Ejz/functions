@@ -2,8 +2,7 @@
 
 define('SQL_FORMAT_DATE', 'Y-m-d');
 define('SQL_FORMAT_DATETIME', 'Y-m-d H:i:s');
-define('EXPECT_FUNCTION_ERR_MSG', "Invalid type: expected %expected, but given %given. Backtrace: %debug");
-define('LOG_FUNCTION_CONSOLE_FORMAT', "[%type] %now ~ %msg");
+define('EXPECT_FUNCTION_MESSAGE', "Invalid type: expected %expected, but given %given. Backtrace: %debug");
 define('GETOPTS_FUNCTION_INVALID', "Invalid argument %arg!");
 define('GETOPTS_FUNCTION_UNKNOWN', "Unknown argument %arg!");
 define('GETOPTS_FUNCTION_NOVALUE', "No value for argument %arg!");
@@ -2234,7 +2233,6 @@ function _expect($var, $types, $fatal = true) {
         $expected[] = $type . ($flag ? '' : ' object');
     }
     $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
-    $debug = array_slice($debug, 0);
     $debug = array_map(function ($arg) use (& $first) {
         $tail = '';
         if (isset($arg['file']))
@@ -2247,7 +2245,7 @@ function _expect($var, $types, $fatal = true) {
     $msg = str_replace(
         ['%expected', '%given', '%debug'],
         [$expected, $given, $debug],
-        EXPECT_FUNCTION_ERR_MSG
+        EXPECT_FUNCTION_MESSAGE
     );
     if ($fatal) _err($msg);
     return _warn($msg);
@@ -2268,21 +2266,19 @@ function _log($msg, $level = E_USER_NOTICE) {
     if (is_null($console))
         $console = (defined('STDIN') and defined('STDERR'));
     if ($console and error_reporting()) {
-        if ($level === E_USER_NOTICE) $type = 'E_USER_NOTICE';
-        elseif ($level === E_USER_WARNING) $type = 'E_USER_WARNING';
-        elseif ($level === E_USER_ERROR) $type = 'E_USER_ERROR';
-        else $type = 'E_UNKNOWN';
+        $type = [
+            E_USER_NOTICE => '[LOG]',
+            E_USER_WARNING => '[WARN]',
+            E_USER_ERROR => '[ERR]',
+        ];
+        $type = isset($type[$level]) ? $type[$level] : '[-]';
         $msg = preg_replace('~\s+~', ' ', trim($msg));
-        $msg = str_replace(
-            ['%type', '%msg', '%now'],
-            [$type, $msg, now()],
-            LOG_FUNCTION_CONSOLE_FORMAT
-        );
-        fwrite(STDERR, $msg . "\n");
+        fwrite(STDERR, $type . ' ' . $msg . "\n");
     } else {
         trigger_error($msg, $level);
     }
     if ($level === E_USER_ERROR) exit(1);
+    return null;
 }
 
 /**
@@ -2293,7 +2289,7 @@ function _log($msg, $level = E_USER_NOTICE) {
  * ```
  */
 function _warn($msg) {
-    _log($msg, E_USER_WARNING);
+    return _log($msg, E_USER_WARNING);
 }
 
 /**
@@ -2304,5 +2300,5 @@ function _warn($msg) {
  * ```
  */
 function _err($msg) {
-    _log($msg, E_USER_ERROR);
+    return _log($msg, E_USER_ERROR);
 }
