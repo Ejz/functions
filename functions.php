@@ -317,39 +317,42 @@ function get_tag_attributes(string $tag, string $attribute = null) {
 /**
  * Prepare attributes for outputing in HTML tag.
  *
- * ```
- * string prepare_tag_attributes(array $attributes);
- * ```
- *
  * ```php
- * $attributes = ["href" => "/link.html?a=1&b=2", "class" => ["_left", "_clearfix"]];
+ * $attributes = [
+ *     'href' => '/link.html?a=1&b=2',
+ *     'class' => ['_left', '_clearfix'],
+ * ];
  * $prepared = prepare_tag_attributes($attributes);
  * // $prepared => 'href="/link.html?a=1&amp;b=2" class="_left _clearfix"'
+ * $attributes = [
+ *     'style' => [
+ *         'margin-top' => '0',
+ *         'display' => 'flex',
+ *     ],
+ * ];
+ * $prepared = prepare_tag_attributes($attributes);
+ * // $prepared => 'style="margin-top:0;display:flex;"'
  * ```
  *
- * ```php
- * $attributes = ["style" => ["margin-top" => "0", "display" => "flex"]];
- * $prepared = prepare_tag_attributes($attributes);
- * // $prepared => "style='margin-top:0;display:flex;'"
- * ```
+ * @param array $attributes
+ * @return string
  */
-function prepare_tag_attributes($attributes) {
-    _expect($attributes, 'array');
-    $collector = array();
+function prepare_tag_attributes(array $attributes): string {
+    $collector = [];
     foreach ($attributes as $k => $v) {
-        if (!$k or (!$v and $v !== "0")) continue;
+        if (!$k or (!$v and $v !== '0')) continue;
         if (is_assoc($v)) {
-            $_collector = array();
+            $_collector = [];
             foreach ($v as $_k => $_v) {
-                if (!$_k or (!$_v and $_v !== "0")) continue;
-                $_collector[] = sprintf('%s:%s', fesc($_k), fesc($_v));
+                if (!$_k or (!$_v and $_v !== '0')) continue;
+                $_collector[] = sprintf('%s:%s', esc($_k), esc($_v));
             }
             $v = implode(';', $_collector) . ($_collector ? ';' : '');
         } elseif (is_array($v)) {
             $v = implode(' ', array_values(array_filter($v)));
         }
-        if (!$v and $v !== "0") continue;
-        $collector[] = sprintf('%s="%s"', $k, fesc($v));
+        if (!$v and $v !== '0') continue;
+        $collector[] = sprintf('%s="%s"', $k, esc($v));
     }
     return implode(' ', $collector);
 }
@@ -358,31 +361,22 @@ function prepare_tag_attributes($attributes) {
  * Get absolute URL, lead URL to more canonical form. Also operates with files. 
  * `$url` is canonized according to `$relative` (file or URL). In case of error returns empty string.
  *
- * ```
- * string realurl(string $url, string $relative = '');
+ * ```php
+ * $url = realurl('/link.html', 'http://site.com/');
+ * // $url => 'http://site.com/link.html'
+ * $url = realurl('http://site.com/archive/2014/../link.html');
+ * // $url => 'http://site.com/archive/link.html'
+ * $url = realurl('../home.html', 'http://site.com/archive/link.html');
+ * // $url => 'http://site.com/home.html'
+ * $url = realurl('../new.md', 'path/a/old.md');
+ * // $url => 'path/new.md'
  * ```
  *
- * ```php
- * $url = realurl("/link.html", "http://site.com/");
- * // $url => "http://site.com/link.html"
- * ```
- *
- * ```php
- * $url = realurl("http://site.com/archive/2014/../link.html");
- * // $url => "http://site.com/archive/link.html"
- * ```
- *
- * ```php
- * $url = realurl("../home.html", "http://site.com/archive/link.html");
- * // $url => "http://site.com/home.html"
- * ```
-  *
- * ```php
- * $url = realurl("../new.md", "path/a/old.md");
- * // $url => "path/new.md"
- * ```
+ * @param string $url
+ * @param string $relative (optional)
+ * @return string
  */
-function realurl($url, $relative = '') {
+function realurl(string $url, string $relative = ''): string {
     if (strpos($url, '#') === 0) return '';
     if (strpos($url, 'javascript:') === 0) return '';
     if (strpos($url, 'mailto:') === 0) return '';
@@ -419,13 +413,19 @@ function realurl($url, $relative = '') {
     return $normalize(preg_replace('~(/)?[^/]+$~', '$1', $relative) . $url);
 }
 
-function xpath_callback_remove($tag) {
+/**
+ * @param DOMNode $tag
+ */
+function xpath_callback_remove(DOMNode $tag) {
     $tag->parentNode->removeChild($tag);
 }
 
-function xpath_callback_unwrap($tag) {
+/**
+ * @param DOMNode $tag
+ */
+function xpath_callback_unwrap(DOMNode $tag) {
     if ($tag->hasChildNodes()) {
-        $collector = array();
+        $collector = [];
         foreach ($tag->childNodes as $child)
             $collector[] = $child;
         for ($i = 0; $i < count($collector); $i++)
@@ -469,7 +469,7 @@ function xpath_callback_unwrap($tag) {
  * For more examples, please, refer to [xpath.md](docs/xpath.md).
  * 
  */
-function xpath($xml, $query = '/*', $callback = null, $flags = array()) {
+function xpath($xml, $query = '/*', $callback = null, $flags = []) {
     _expect($xml, 'string|DOMNode');
     _expect($query, 'string');
     _expect($callback, 'callable|int|null');

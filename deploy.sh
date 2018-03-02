@@ -42,15 +42,15 @@ sudo=""
 [ "$EUID" -ne "0" ] && sudo="sudo"
 
 vars=()
-vars+=("HOST ${prefix}.dev")
 vars+=("DOCKER_NAME_PREFIX ${prefix}_")
 vars+=("DOCKER_IMAGE_PREFIX ejzspb/")
-vars+=("ELASTICSEARCH_HOST no")
-vars+=("SQL_HOST yes")
-vars+=("SQL_PORT 3306")
-vars+=("SQL_USER user")
-vars+=("SQL_PASS pass")
-vars+=("SQL_DB ${prefix}")
+vars+=("DB_HOST yes")
+vars+=("DB_PORT 3306")
+vars+=("DB_USER user")
+vars+=("DB_PASS pass")
+vars+=("DB_NAME ${prefix}")
+vars+=("EXPOSE_NGINX 0.0.0.0:80")
+vars+=("EXPOSE_MARIADB 127.0.0.1:3306")
 
 for var in "${vars[@]}"; do
     one=`echo "$var" | cut -d" " -f1`
@@ -84,16 +84,14 @@ for var in "${vars[@]}"; do
     eval export "$one"='$temp'
 done
 
-BASE="/var/www/${HOST}"
-CGI="$BASE"
-[ -d cgi ] && CGI="${BASE}/cgi"
+BASE="/var/www"
 [ -t 0 ] && t="t"
 EXEC="$sudo docker exec -i ${DOCKER_NAME_PREFIX}nginx"
 EXEC_T="$sudo docker exec -i${t} ${DOCKER_NAME_PREFIX}nginx"
 EXEC_GH_TOKEN="$sudo docker exec -i${t} ${DOCKER_NAME_PREFIX}nginx env GH_TOKEN=${GH_TOKEN}"
 
 if test "$test"; then
-    exec=($EXEC "phpunit" "-c" "/var/www/${HOST}/phpunit.xml")
+    exec=($EXEC "phpunit" "-c" "/var/www/phpunit.xml")
 elif test "$login"; then
     exec=($EXEC_T "bash")
 elif test "${#exec[@]}" -gt 0; then
@@ -105,40 +103,48 @@ if [ "${#exec[@]}" -gt 0 ] && $sudo docker ps --filter "name=^/${DOCKER_NAME_PRE
     exit "$?"
 fi
 
-$sudo rm -f local.ini cgi/local.ini
-$sudo rm -rf vendor cgi/vendor
+# $sudo rm -f local.ini cgi/local.ini
+# $sudo rm -rf vendor cgi/vendor
+
 list=`$sudo docker ps -a --filter "name=^/${DOCKER_NAME_PREFIX}" | awk '{print $1}' | tail -n +2`
 if [ "$list" ]; then
     echo "Delete Docker containers with prefix ${DOCKER_NAME_PREFIX}:"
     $sudo docker rm -f -v $list
 fi
 
-if [ "$SQL_HOST" == "yes" ]; then
+#
+# MARIADB
+#
+if [ "$DB_HOST" == "yes" ]; then
     $sudo docker pull "$DOCKER_IMAGE_PREFIX"mariadb
-    $sudo docker run -d --name "$DOCKER_NAME_PREFIX"mariadb \
-        -e "MYSQL_RANDOM_ROOT_PASSWORD=yes" -e "MYSQL_DATABASE=${SQL_DB}" \
-        -e "MYSQL_USER=${SQL_USER}" -e "MYSQL_PASSWORD=${SQL_PASS}" "$DOCKER_IMAGE_PREFIX"mariadb
+    expose=""
+    if [ "$EXPOSE_MARIADB" ]; then
+        expose="-p ${EXPOSE_MARIADB}:${DB_PORT}"
+    fi
+    $sudo docker run -d --name "$DOCKER_NAME_PREFIX"mariadb $expose \
+        -e "MYSQL_RANDOM_ROOT_PASSWORD=yes" -e "MYSQL_DATABASE=${DB_NAME}" \
+        -e "MYSQL_USER=${DB_USER}" -e "MYSQL_PASSWORD=${DB_PASS}" "$DOCKER_IMAGE_PREFIX"mariadb
     { sleep 2; $sudo docker ps | grep -q "$DOCKER_NAME_PREFIX"mariadb; } || { echo "mariadb failed to run!"; exit 1; }
     ip=`$sudo docker inspect "$DOCKER_NAME_PREFIX"mariadb | grep '"IPAddress"' | cut -d'"' -f4 | head -1`
-    SQL_HOST="$ip"
-    SQL_PORT=3306
-    echo "SQL_HOST=${SQL_HOST}"
-    echo "SQL_PORT=${SQL_PORT}"
+    DB_HOST="$ip"
+    echo "DB_HOST=${DB_HOST}"
+    echo "DB_PORT=${DB_PORT}"
 fi
 
-if [ "$ELASTICSEARCH_HOST" == "yes" ]; then
-    $sudo docker pull elasticsearch
-    $sudo docker run -d --name "$DOCKER_NAME_PREFIX"elasticsearch -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" elasticsearch
-    { sleep 2; $sudo docker ps | grep -q "$DOCKER_NAME_PREFIX"elasticsearch; } || { echo "elasticsearch failed to run!"; exit 1; }
-    ip=`$sudo docker inspect "$DOCKER_NAME_PREFIX"elasticsearch | grep '"IPAddress"' | cut -d'"' -f4 | head -1`
-    ELASTICSEARCH_HOST="$ip"
-    echo "ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST}"
-fi
-
-# Start nginx
+#
+# NGINX
+#
+add_host=""
+for dir in "$this_dir"/public/*; do
+    test -d "$dir" || continue
+    add_host="--add-host ${dir}:127.0.0.1 ${add_host}"
+done
 $sudo docker pull "$DOCKER_IMAGE_PREFIX"nginx
-$sudo lsof -i -P -n | grep LISTEN | grep -q ':80' || expose="-p 0.0.0.0:80:80"
-$sudo docker run -w "$BASE" --add-host "$HOST":127.0.0.1 -v "`pwd`":/var/www/"$HOST" ${expose} \
+expose=""
+if [ "$EXPOSE_NGINX" ]; then
+    expose="-p ${EXPOSE_NGINX}:80"
+fi
+$sudo docker run -w "$BASE" $add_host -v "$this_dir":/var/www $expose \
     --name "$DOCKER_NAME_PREFIX"nginx -d "$DOCKER_IMAGE_PREFIX"nginx
 { sleep 2; $sudo docker ps | grep -q "$DOCKER_NAME_PREFIX"nginx; } || { echo "nginx failed to run!"; exit 1; }
 ip=`$sudo docker inspect "$DOCKER_NAME_PREFIX"nginx | grep '"IPAddress"' | cut -d'"' -f4 | head -1`
@@ -166,14 +172,12 @@ else
     $EXEC "$BASE"/install.sh
 fi
 set -x
-$EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI global.default_host "$HOST"
-if [ "$SQL_HOST" != "no" ]; then
-    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.host "$SQL_HOST"
-    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.port "$SQL_PORT"
-    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.user "$SQL_USER"
-    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.pass "$SQL_PASS"
-    $EXEC php "$CGI"/bootstrap.php ini_file_set LOCAL_INI sql.db "$SQL_DB"
-fi
+
+$EXEC php "$BASE"/index.php setenv DB_HOST "$DB_HOST"
+$EXEC php "$BASE"/index.php setenv DB_PORT "$DB_PORT"
+$EXEC php "$BASE"/index.php setenv DB_NAME "$DB_NAME"
+$EXEC php "$BASE"/index.php setenv DB_USER "$DB_USER"
+$EXEC php "$BASE"/index.php setenv DB_PASS "$DB_PASS"
 
 if [ "${#exec[@]}" -gt 0 ]; then
     "${exec[@]}"
