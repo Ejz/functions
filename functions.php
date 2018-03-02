@@ -2,44 +2,16 @@
 
 define('SQL_FORMAT_DATE', 'Y-m-d');
 define('SQL_FORMAT_DATETIME', 'Y-m-d H:i:s');
-define('EXPECT_FUNCTION_MESSAGE', "Invalid type: expected %expected, but given %given. Backtrace: %debug");
-define('GETOPTS_FUNCTION_INVALID', "Invalid argument %arg!");
-define('GETOPTS_FUNCTION_UNKNOWN', "Unknown argument %arg!");
-define('GETOPTS_FUNCTION_NOVALUE', "No value for argument %arg!");
-define('GETOPTS_FUNCTION_VALUE_EXPECTED', "Expected value for %arg, given another argument %given!");
-define('GETOPTS_FUNCTION_EXPECT_NOVALUE', "Expect no value for argument %arg!");
-
-/**
- * Encode/decode HTML chars in given string: `>`, `<` and `&`. 
- * Use this function to escape HTML tags content.
- *
- * ```php
- * $s = esc("HTML: <>&");
- * // $s => "HTML: &lt;&gt;&amp;"
- * $s = esc($s, $decode = true);
- * // $s => "HTML: <>&"
- * ```
- */
-function esc($string, $decode = false) {
-    return call_user_func(
-        $decode ? 'html_entity_decode' : 'htmlspecialchars',
-        $string,
-        ENT_NOQUOTES
-    );
-}
 
 /**
  * Encode/decode HTML chars in given string: `>`, `<`, `&`, `'` and `"`. 
- * Use this function to escape HTML tags atrribute values.
+ * Use this function to escape HTML tags content and atrribute values.
  *
- * ```php
- * $s = fesc("HTML: <>&, '\"");
- * // $s => "HTML: &lt;&gt;&amp;, &#039;&quot;"
- * $s = esc($s, $decode = true);
- * // $s => "HTML: <>&, '\""
- * ```
+ * @param string $string
+ * @param bool   $decode (optional)
+ * @return string
  */
-function fesc($string, $decode = false) {
+function esc(string $string, bool $decode = false): string {
     return call_user_func(
         $decode ? 'html_entity_decode' : 'htmlspecialchars',
         $string,
@@ -48,66 +20,20 @@ function fesc($string, $decode = false) {
 }
 
 /**
- * Native PHP templating engine.
- *
- * ```
- * string template(string $file, array $vars = array());
- * ```
- *
- * ```html
- * <!-- test.tpl -->
- * <html>
- * <head>
- *     <title><?=$title?></title>
- * </head>
- * <body>
- *     <?=$body?>
- * </body>
- * </html>
- * ```
- *
- * ```php
- * echo template("test.tpl", [
- *     "title" => "Test Title",
- *     "body" => "<h1>Hello!</h1>",
- * ]);
- * ```
- *
- * Output:
- *
- * ```html
- * <html>
- * <head>
- *     <title>Test Title</title>
- * </head>
- * <body>
- *     <h1>Hello!</h1>
- * </body>
- * </html>
- * ```
- */
-function template() {
-    if (func_num_args() > 1)
-        extract(func_get_arg(1));
-    ob_start();
-    include(func_get_arg(0));
-    return ob_get_clean();
-}
-
-/**
  * Validate a hostname (an IP address or domain name).
  *
- * ```
- * bool is_host(string $host);
- * ```
- *
  * ```php
- * $bool = is_host("github.com");
+ * $bool = is_host('github.com');
  * // $bool => true
  * ```
+ *
+ * @param mixed $host
+ * @return bool
  */
-function is_host($host) {
+function is_host($host): bool {
     return (
+        is_string($host)
+            and
         preg_match('/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i', $host)
             and
         strlen($host) <= 253
@@ -119,16 +45,15 @@ function is_host($host) {
 /**
  * Get hostname from URL.
  *
- * ```
- * string host(string $url);
+ * ```php
+ * $host = host('https://github.com/');
+ * // $host => 'github.com'
  * ```
  *
- * ```php
- * $host = host("https://github.com/");
- * // $host => "github.com"
- * ```
+ * @param string $url
+ * @return string
  */
-function host($url) {
+function host(string $url): string {
     $host = strtolower(parse_url($url, PHP_URL_HOST));
     return is_host($host) ? $host : '';
 }
@@ -136,47 +61,44 @@ function host($url) {
 /**
  * Get current date in SQL format. Can shift current day using first argument.
  *
- * ```
- * string curdate(int $shift_days = 0);
- * ```
- *
  * ```php
  * $today = curdate();
- * // $today => "2017-08-17"
+ * // $today => '2017-08-17'
  * $yesterday = curdate(-1);
- * // $yesterday => "2017-08-16"
+ * // $yesterday => '2017-08-16'
  * ```
+ *
+ * @param int $shift_days (optional)
+ * @return string
  */
-function curdate($shift_days = 0) {
+function curdate(int $shift_days = 0): string {
     return date(SQL_FORMAT_DATE, time() + ($shift_days * 24 * 3600));
 }
 
 /**
  * Get current time is SQL format. Can shift current time using first argument.
  *
- * ```
- * string now(int $shift_seconds = 0);
- * ```
- *
  * ```php
  * $now = now();
- * // $now => "2017-08-17 11:04:31"
+ * // $now => '2017-08-17 11:04:31'
  * $min_ago = now(-60);
- * // $min_ago => "2017-08-17 11:03:31"
+ * // $min_ago => '2017-08-17 11:03:31'
  * ```
+ *
+ * @param int $shift_seconds (optional)
+ * @return string
  */
-function now($shift_seconds = 0) {
+function now(int $shift_seconds = 0): string {
     return date(SQL_FORMAT_DATETIME, time() + $shift_seconds);
 }
 
 /**
  * Split line by line given string. Each line is trimmed, empty ones are filtered out.
  *
- * ```
- * array nsplit(string $string);
- * ```
+ * @param string $string
+ * @return array
  */
-function nsplit($string) {
+function nsplit(string $string): array {
     $string = str_replace("\r", "\n", $string);
     $string = explode("\n", $string);
     $string = array_map('trim', $string);
@@ -187,37 +109,36 @@ function nsplit($string) {
 /**
  * Return whether or not the provided object is callable.
  *
- * ```
- * bool is_closure(object $object);
+ * ```php
+ * $is_closure = is_closure(function () { ; });
+ * // $is_closure => true
  * ```
  *
- * ```php
- * $bool = is_closure(function() { ; });
- * // $bool => true
- * ```
+ * @param mixed $closure
+ * @return bool
  */
-function is_closure($object) {
-    return (is_callable($object) and is_object($object));
+function is_closure($closure): bool {
+    return (is_callable($closure) and is_object($closure));
 }
 
 /**
  * Whether or not provided IP is valid IP.
  *
- * ```
- * bool is_ip(string $ip, bool $allow_private = true);
+ * ```php
+ * $ip = '127.0.0.1';
+ * $is_ip = is_ip($ip);
+ * // $is_ip => true
+ * $is_ip = is_ip($ip, false);
+ * // $is_ip => false
  * ```
  *
- * ```php
- * $ip = "127.0.0.1";
- * $bool = is_ip($ip);
- * // $bool => true
- * $bool = is_ip($ip, $allow_private = false);
- * // $bool => false
- * ```
+ * @param mixed $ip
+ * @param bool $allow_private (optional)
+ * @return bool
  */
-function is_ip($ip, $allow_private = true) {
+function is_ip($ip, bool $allow_private = true): bool {
     return (bool)(filter_var(
-        $ip,
+        is_string($ip) ? $ip : '',
         FILTER_VALIDATE_IP,
         $allow_private ? 0 : (FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)
     ));
@@ -226,68 +147,57 @@ function is_ip($ip, $allow_private = true) {
 /**
  * Validate associative array.
  *
- * ```
- * bool is_assoc(array $array);
+ * ```php
+ * $is_assoc = is_assoc([]);
+ * // $is_assoc => true
+ * $is_assoc = is_assoc([1, 2]);
+ * // $is_assoc => false
+ * $is_assoc = is_assoc(['key' => 'value']);
+ * // $is_assoc => true
  * ```
  *
- * ```php
- * $bool = is_assoc([]);
- * // $bool => true
- * ```
- *
- * ```php
- * $bool = is_assoc([1, 2]);
- * // $bool => false
- * ```
- *
- * ```php
- * $bool = is_assoc(["key" => "value"]);
- * // $bool => true
- * ```
+ * @param mixed $assoc
+ * @return bool
  */
-function is_assoc($array) {
-    if (!is_array($array)) return false;
-    $count0 = count($array);
-    $count1 = count(array_filter(array_keys($array), 'is_string'));
+function is_assoc($assoc): bool {
+    if (!is_array($assoc)) return false;
+    $count0 = count($assoc);
+    $count1 = count(array_filter(array_keys($assoc), 'is_string'));
     return ($count0 === $count1);
 }
 
 /**
  * Validate regular expression.
  *
- * ```
- * bool is_regex(string $regex);
+ * ```php
+ * $is_regex = is_regex('invalid');
+ * // $is_regex => false
+ * $is_regex = is_regex('~\w~');
+ * // $is_regex => true
  * ```
  *
- * ```php
- * $bool = is_regex("invalid");
- * // $bool => false
- * ```
- *
- * ```php
- * $bool = is_regex("~\w~");
- * // $bool => true
- * ```
+ * @param mixed $regex
+ * @return bool
  */
-function is_regex($regex) {
-    if (is_numeric($regex)) return false;
-    if (!is_string($regex)) return false;
-    return (@ (preg_match($regex . '', '') !== false));
+function is_regex($regex): bool {
+    if (is_numeric($regex) or !is_string($regex)) return false;
+    return (@ (preg_match($regex, '') !== false));
 }
 
 /**
  * String replace. Replace is applied only once.
  *
- * ```
- * string str_replace_once(string $needle, string $replace, string $haystack);
+ * ```php
+ * $str = str_replace_once('foo', 'bar', 'foo foo');
+ * // $str => 'bar foo'
  * ```
  *
- * ```php
- * $str = str_replace_once("foo", "bar", "foo foo");
- * // $str => "bar foo"
- * ```
+ * @param string $needle
+ * @param string $replace
+ * @param string $haystack
+ * @return string
  */
-function str_replace_once($needle, $replace, $haystack) {
+function str_replace_once(string $needle, string $replace, string $haystack): string {
     @ $pos = strpos($haystack, $needle);
     if ($pos === false) return $haystack;
     return substr_replace($haystack, $replace, $pos, strlen($needle));
@@ -296,21 +206,20 @@ function str_replace_once($needle, $replace, $haystack) {
 /**
  * Truncate string to certain length (be default 40 chars).
  *
- * ```
- * string str_truncate(string $string, int $length = 40, bool $center = false, string $replacer = '...');
+ * ```php
+ * $str = str_truncate('Hello, world!', 5);
+ * // $str => 'He...'
+ * $str = str_truncate('Hello, world!', 5, true);
+ * // $str => 'H...!'
  * ```
  *
- * ```php
- * $str = str_truncate("Hello, world!", 5);
- * // $str => "He..."
- * ```
- *
- * ```php
- * $str = str_truncate("Hello, world!", 5, $center = true);
- * // $str => "H...!"
- * ```
+ * @param string $string
+ * @param int $length (optional)
+ * @param bool $center (optional)
+ * @param string $replacer (optional)
+ * @return string
  */
-function str_truncate($string, $length = 40, $center = false, $replacer = '...') {
+function str_truncate(string $string, int $length = 40, bool $center = false, string $replacer = '...'): string {
     $l = mb_strlen($replacer);
     if ($center and $length < (2 + $l)) $length = (2 + $l);
     if (!$center and $length < (1 + $l)) $length = (1 + $l);
@@ -327,64 +236,23 @@ function str_truncate($string, $length = 40, $center = false, $replacer = '...')
 }
 
 /**
- * Shuffle an array using `mt_rand()`. Can use seed for remembering randomize.
- *
- * ```
- * mt_shuffle(array & $array, string|int|null $seed = null);
- * ```
- *
- * ```php
- * $arr = ["one", "two", "three"];
- * mt_shuffle($arr);
- * // $arr => ["two", "three", "one"]
- * ```
- */
-function mt_shuffle(& $array, $seed = null) {
-    $keys = array_keys($array);
-    $n = func_num_args();
-    _expect($seed, 'string|int|null');
-    $seed = is_null($seed) ? null : (string)($seed);
-    for ($i = count($array) - 1; $i > 0; $i--) {
-        if (!is_null($seed)) {
-            $j = rand_from_string($seed) % ($i + 1);
-            $seed .= ($j . '');
-        } else $j = mt_rand(0, $i);
-        if ($i != $j) {
-            $_ = $array[$keys[$i]];
-            $array[$keys[$i]] = $array[$keys[$j]];
-            $array[$keys[$j]] = $_;
-        }
-    }
-}
-
-/**
  * Get file extension.
  *
- * ```
- * string file_get_ext(string $file);
+ * ```php
+ * $ext = file_get_ext('image.PNG');
+ * // $ext => 'png'
+ * $ext = file_get_ext('archive.tar.gz');
+ * // $ext => 'gz'
+ * $ext = file_get_ext('/etc/passwd');
+ * // $ext => ''
+ * $ext = file_get_ext('/var/www/');
+ * // $ext => ''
  * ```
  *
- * ```php
- * $ext = file_get_ext("image.PNG");
- * // $ext => "png"
- * ```
- *
- * ```php
- * $ext = file_get_ext("archive.tar.gz");
- * // $ext => "gz"
- * ```
- *
- * ```php
- * $ext = file_get_ext("/etc/passwd");
- * // $ext => ""
- * ```
- *
- * ```php
- * $ext = file_get_ext("/var/www/");
- * // $ext => ""
- * ```
+ * @param string $file
+ * @return string
  */
-function file_get_ext($file) {
+function file_get_ext(string $file): string {
     preg_match('~\.([a-z0-9A-Z]{1,5})$~', $file, $match);
     if (!$match) return '';
     return strtolower($match[1]);
@@ -393,31 +261,21 @@ function file_get_ext($file) {
 /**
  * Get file name (without extension).
  *
- * ```
- * string file_get_name(string $file);
+ * ```php
+ * $name = file_get_name('image.png');
+ * // $name => 'image'
+ * $name = file_get_name('archive.tar.gz');
+ * // $name => 'archive.tar'
+ * $name = file_get_name('/etc/passwd');
+ * // $name => 'passwd'
+ * $name = file_get_name('/var/www/');
+ * // $name => ''
  * ```
  *
- * ```php
- * $name = file_get_name("image.png");
- * // $name => "image"
- * ```
- *
- * ```php
- * $name = file_get_name("archive.tar.gz");
- * // $name => "archive.tar"
- * ```
- *
- * ```php
- * $name = file_get_name("/etc/passwd");
- * // $name => "passwd"
- * ```
- *
- * ```php
- * $name = file_get_name("/var/www/");
- * // $name => ""
- * ```
+ * @param string $file
+ * @return string
  */
-function file_get_name($file) {
+function file_get_name(string $file): string {
     if (substr($file, -1) === '/')
         return '';
     $file = basename($file);
@@ -425,116 +283,33 @@ function file_get_name($file) {
 }
 
 /**
- * Get random integer from string.
- *
- * ```
- * int rand_from_string(string $string);
- * ```
- *
- * ```php
- * $int = rand_from_string("one");
- * // $int => 975299411
- * ```
- *
- * ```php
- * $int = rand_from_string("two");
- * // $int => 897156455
- * ```
- *
- * ```php
- * $int = rand_from_string("one");
- * // $int => 975299411
- * ```
- */
-function rand_from_string($string) {
-    $max = mt_getrandmax();
-    $int = md5((string)($string));
-    $int = preg_replace('/[^0-9]/', '', $int);
-    $int = substr($int, 0, strlen($max . '') - 1);
-    return intval($int);
-}
-
-/**
- * Randomly get User agent string.
- *
- * ```
- * string get_user_agent(string|null $filter = null, string|int|null $seed = null);
- * ```
- *
- * ```php
- * $ua = get_user_agent();
- * // $ua => "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"
- * ```
- *
- * ```php
- * $ua = get_user_agent("invalid filter");
- * // $ua => ""
- * ```
- *
- * ```php
- * $ua = get_user_agent("opera");
- * // $ua => "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; de) Opera 11.51"
- * ```
- *
- * ```php
- * var_dump(get_user_agent("Mac OS X", "seed") === get_user_agent("Mac OS X", "seed"));
- * // => bool(true)
- * ```
- */
-function get_user_agent($filter = null, $seed = null) {
-    _expect($filter, 'string|null');
-    _expect($seed, 'string|int|null');
-    $list = __DIR__ . '/ua.list.txt';
-    $list = nsplit(file_get_contents($list));
-    if (!is_null($filter)) {
-        $is_regex = is_regex($filter);
-        $list = array_values(array_filter($list, function ($line) use ($filter, $is_regex) {
-            if ($is_regex) return preg_match($filter, $line);
-            return (stripos($line, $filter) !== false);
-        }));
-    }
-    if (!$list) return '';
-    if (!is_null($seed))
-        $rand = rand_from_string((string)($seed)) % count($list);
-    else $rand = mt_rand(0, count($list) - 1);
-    return $list[$rand];
-}
-
-/**
  * Get tag attributes. Returns list. 
  * If second argument is not null, returns value of this argument 
  * (or null if no such argument).
  *
- * ```
- * array|string|null get_user_agent(string|DOMNode $tag, string|null $attr = null);
- * ```
- *
  * ```php
  * $tag = "<a href='/link.html?a=1&amp;b=2'>";
- * $attrs = get_tag_attributes($tag);
- * // $attrs => ["href" => "/link.html?a=1&b=2"]
- * $attr = get_tag_attributes($tag, 'href');
- * // $attr => "/link.html?a=1&b=2"
- * $attr = get_tag_attributes($tag, '_target');
- * // $attr => null
+ * $attributes = get_tag_attributes($tag);
+ * // $attributes => ['href' => '/link.html?a=1&b=2']
+ * $attribute = get_tag_attributes($tag, 'href');
+ * // $attribute => '/link.html?a=1&b=2'
+ * $attribute = get_tag_attributes($tag, '_target');
+ * // $attribute => null
  * ```
+ *
+ * @param string $tag
+ * @param string $attribute (optional)
+ * @return array|string|null
  */
-function get_tag_attributes($tag, $attr = null) {
-    _expect($tag, 'string|DOMNode');
-    _expect($attr, 'string|null');
-    if ($tag instanceof DOMNode) {
-        $doc = $tag->ownerDocument;
-        $tag = $doc->saveXML($tag);
-    }
-    $tag = trim($tag);
-    $tag = preg_replace('~^(<\w+\b([^>]*)>).*$~is', '$2', $tag);
+function get_tag_attributes(string $tag, string $attribute = null) {
+    $tag = preg_replace('~^\s*(<\w+\b([^>]*)>).*$~is', '$2', $tag);
     preg_match_all('~\b(?P<attr>[\w-]+)=([\'"]?)(?P<value>.*?)\2(?=\s|>|$)~', $tag, $matches, PREG_SET_ORDER);
-    $collector = array();
+    $collector = [];
     foreach ($matches as $match) {
-        $collector[strtolower($match['attr'])] = html_entity_decode($match['value'], ENT_QUOTES);
+        $collector[strtolower($match['attr'])] = esc($match['value'], $decode = true);
     }
-    if (!is_null($attr)) {
-        return array_key_exists($attr, $collector) ? $collector[$attr] : null;
+    if (!is_null($attribute)) {
+        return array_key_exists($attribute, $collector) ? $collector[$attribute] : null;
     }
     return $collector;
 }
