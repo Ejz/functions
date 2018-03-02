@@ -121,11 +121,11 @@ $def = true; // default
 $keys = array_keys($opts);
 $e = !empty($opts['enable']);
 $d = !empty($opts['disable']);
-$is_enabled =
+$is_enabled = (
     ($def and !$e and !$d) or
     ($e and !$d) or
     ($e and $d and (array_search('enable', $keys, true) > array_search('disable', $keys, true)))
-;
+);
 ```
 
 ### Possible errors
