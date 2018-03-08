@@ -1,10 +1,14 @@
 <?php
 
-class XpathTest extends PHPUnit_Framework_TestCase {
-    public function testXpath() {
-        $xml = "<root> <img> 1 </img> </root>";
-        list($_) = xpath($xml, '/*', null, ['ignore_fix' => true]);
-        $this->assertRegexp("~^\s*<root>\s*<img>\s*1\s*</img>\s*</root>\s*$~", $_);
+use PHPUnit\Framework\TestCase;
+
+class TestXpath extends TestCase {
+    /**
+     */
+    public function testXpathCommon() {
+        $xml = '<root> <img> 1 </img> </root>';
+        [$_] = xpath($xml, '/*', null, ['ignore_fix' => true]);
+        $this->assertRegexp('~^\s*<root>\s*<img>\s*1\s*</img>\s*</root>\s*$~', $_);
         //
         $xml = "<root> <a> 1 </a> <b>2</b> </root>";
         list($_) = xpath($xml, '/*');
@@ -56,23 +60,23 @@ class XpathTest extends PHPUnit_Framework_TestCase {
         });
         $this->assertRegexp("~^\s*<root>\s*<one>1</one>\s*<two>2</two>\s*</root>\s*$~", $xml);
         //
-        $xml = "<root> <a>1</a> <b>2</b> <c>3</c> </root>";
-        $xml = xpath($xml, '//b', "xpath_callback_remove");
+        $xml = '<root> <a>1</a> <b>2</b> <c>3</c> </root>';
+        $xml = xpath($xml, '//b', 'xpath_callback_remove');
         $this->assertRegexp("~^\s*<root>\s*<a>1</a>\s*<c>3</c>\s*</root>\s*$~", $xml);
         //
-        $xml = "<root><a remove='1'><b>b</b><c remove='1'></c></a></root>";
+        $xml = '<root><a remove=\'1\'><b>b</b><c remove=\'1\'></c></a></root>';
         $count = 0;
-        $xml = xpath($xml, '//*[@remove="1"]', function($tag) use(& $count) {
+        $xml = xpath($xml, '//*[@remove="1"]', function ($tag) use(& $count) {
             $count += 1;
             $tag->parentNode->removeChild($tag);
         });
         $this->assertRegexp("~^\s*<root/>\s*$~", $xml);
         $this->assertEquals(1, $count);
         //
-        $xml = "<root><p>a<br>b</p></root>";
+        $xml = '<root><p>a<br>b</p></root>';
         $texts = xpath($xml, '//p/text()');
-        $this->assertEquals("a", $texts[0]);
-        $this->assertEquals("b", $texts[1]);
+        $this->assertEquals('a', $texts[0]);
+        $this->assertEquals('b', $texts[1]);
         //
         $xml = <<<END
 <!DOCTYPE html>

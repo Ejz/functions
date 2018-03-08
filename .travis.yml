@@ -1,5 +1,4 @@
 dist: trusty
-language: php
 sudo: required
 
 services:
@@ -9,4 +8,4 @@ branches:
   except:
   - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
-script: ./deploy.sh -D -P && php ./gendoc.php && ./gitci.sh "README.md" "Update README.md [skip ci]"
+script: ./deploy.sh && ./deploy.sh --test && php ./gendoc.php && ./gitci.sh "README.md" "Update README.md [skip ci]"

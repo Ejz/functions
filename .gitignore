@@ -13,3 +13,4 @@ local.ini
 *.sublime-project
 *.sublime-workspace
 phar-composer.phar
+.env
