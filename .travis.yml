@@ -8,4 +8,4 @@ branches:
   except:
   - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
-script: ./travis.sh
+script: ./.travis.sh
