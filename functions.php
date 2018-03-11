@@ -704,7 +704,7 @@ END;
  * ```
  *
  * @param string $string
- * @param string $extra
+ * @param string $extra  (optional)
  * @param bool   $ru     (optional)
  *
  * @return string
