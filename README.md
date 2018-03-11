@@ -463,7 +463,7 @@ $s = latinize('привет мир', true);
 #### normalize
 
 ```
-string normalize(string $string, string $extra, bool $ru = false)
+string normalize(string $string, string $extra = '', bool $ru = false)
 ```
 
 Normalize string by removing non-English chars. 
