@@ -13,7 +13,7 @@ To use it, just include `vendor/autoload.php` in your PHP script.
 
 ### Requirements
 
-PHP 5.6 or above (with cURL and GD library installed).
+PHP 7.1 or above (with cURL library installed).
 
 ### Contents
 
@@ -46,8 +46,6 @@ PHP 5.6 or above (with cURL and GD library installed).
 - [latinize](#latinize)
 - [normalize](#normalize)
 - [sanitize_html_output](#sanitize_html_output)
-- [xpath_callback_remove](#xpath_callback_remove)
-- [xpath_callback_unwrap](#xpath_callback_unwrap)
 - [xpath](#xpath)
 - [readable_to_variable](#readable_to_variable)
 - [to_storage](#to_storage)
@@ -57,17 +55,20 @@ PHP 5.6 or above (with cURL and GD library installed).
 
 #### esc
 
+```
+string esc(string $string, bool $decode = false)
+```
+
 Encode/decode HTML chars in given string: `>`, `<`, `&`, `'` and `"`. 
 Use this function to escape HTML tags content and atrribute values.
-
-@param string $string
-@param bool   $decode (optional)
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L15-L21)
 
 #### is_host
+
+```
+bool is_host(mixed $host)
+```
 
 Validate a hostname (an IP address or domain name).
 
@@ -76,13 +77,13 @@ $bool = is_host('github.com');
 // $bool => true
 ```
 
-@param mixed $host
-
-@return bool
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L35-L45)
 
 #### host
+
+```
+string host(string $url)
+```
 
 Get hostname from URL.
 
@@ -91,13 +92,13 @@ $host = host('https://github.com/');
 // $host => 'github.com'
 ```
 
-@param string $url
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L59-L62)
 
 #### curdate
+
+```
+string curdate(int $shift_days = 0)
+```
 
 Get current date in SQL format. Can shift current day using first argument.
 
@@ -108,13 +109,13 @@ $yesterday = curdate(-1);
 // $yesterday => '2017-08-16'
 ```
 
-@param int $shift_days (optional)
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L78-L80)
 
 #### now
+
+```
+string now(int $shift_seconds = 0)
+```
 
 Get current time is SQL format. Can shift current time using first argument.
 
@@ -125,23 +126,23 @@ $min_ago = now(-60);
 // $min_ago => '2017-08-17 11:03:31'
 ```
 
-@param int $shift_seconds (optional)
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L96-L98)
 
 #### nsplit
 
+```
+array nsplit(string $string)
+```
+
 Split line by line given string. Each line is trimmed, empty ones are filtered out.
-
-@param string $string
-
-@return array
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L107-L113)
 
 #### is_closure
+
+```
+bool is_closure(mixed $closure)
+```
 
 Return whether or not the provided object is callable.
 
@@ -150,13 +151,13 @@ $is_closure = is_closure(function () { ; });
 // $is_closure => true
 ```
 
-@param mixed $closure
-
-@return bool
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L127-L129)
 
 #### is_ip
+
+```
+bool is_ip(mixed $ip, bool $allow_private = true)
+```
 
 Whether or not provided IP is valid IP.
 
@@ -168,14 +169,13 @@ $is_ip = is_ip($ip, false);
 // $is_ip => false
 ```
 
-@param mixed $ip
-@param bool  $allow_private (optional)
-
-@return bool
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L147-L153)
 
 #### is_assoc
+
+```
+bool is_assoc(mixed $assoc)
+```
 
 Validate associative array.
 
@@ -188,13 +188,13 @@ $is_assoc = is_assoc(['key' => 'value']);
 // $is_assoc => true
 ```
 
-@param mixed $assoc
-
-@return bool
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L171-L176)
 
 #### is_regex
+
+```
+bool is_regex(mixed $regex)
+```
 
 Validate regular expression.
 
@@ -205,13 +205,13 @@ $is_regex = is_regex('~\w~');
 // $is_regex => true
 ```
 
-@param mixed $regex
-
-@return bool
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L192-L195)
 
 #### str_replace_once
+
+```
+string str_replace_once(string $needle, string $replace, string $haystack)
+```
 
 String replace. Replace is applied only once.
 
@@ -220,15 +220,13 @@ $str = str_replace_once('foo', 'bar', 'foo foo');
 // $str => 'bar foo'
 ```
 
-@param string $needle
-@param string $replace
-@param string $haystack
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L211-L215)
 
 #### str_truncate
+
+```
+string str_truncate(string $string, int $length = 40, bool $center = false, string $replacer = '...')
+```
 
 Truncate string to certain length (be default 40 chars).
 
@@ -239,16 +237,13 @@ $str = str_truncate('Hello, world!', 5, true);
 // $str => 'H...!'
 ```
 
-@param string $string
-@param int    $length   (optional)
-@param bool   $center   (optional)
-@param string $replacer (optional)
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L234-L248)
 
 #### file_get_ext
+
+```
+string file_get_ext(string $file)
+```
 
 Get file extension.
 
@@ -263,13 +258,13 @@ $ext = file_get_ext('/var/www/');
 // $ext => ''
 ```
 
-@param string $file
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L268-L272)
 
 #### file_get_name
+
+```
+string file_get_name(string $file)
+```
 
 Get file name (without extension).
 
@@ -284,13 +279,13 @@ $name = file_get_name('/var/www/');
 // $name => ''
 ```
 
-@param string $file
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L292-L297)
 
 #### get_tag_attributes
+
+```
+array|string|null get_tag_attributes(string $tag, string $attribute = null)
+```
 
 Get tag attributes. Returns list. 
 If second argument is not null, returns value of this argument 
@@ -306,14 +301,13 @@ $attribute = get_tag_attributes($tag, '_target');
 // $attribute => null
 ```
 
-@param string $tag
-@param string $attribute (optional)
-
-@return array|string|null
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L319-L330)
 
 #### prepare_tag_attributes
+
+```
+string prepare_tag_attributes(array $attributes)
+```
 
 Prepare attributes for outputing in HTML tag.
 
@@ -334,13 +328,13 @@ $prepared = prepare_tag_attributes($attributes);
 // $prepared => 'style="margin-top:0;display:flex;"'
 ```
 
-@param array $attributes
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L356-L374)
 
 #### realurl
+
+```
+string realurl(string $url, string $relative = '')
+```
 
 Get absolute URL, lead URL to more canonical form. Also operates with files. 
 `$url` is canonized according to `$relative` (file or URL). In case of error returns empty string.
@@ -356,111 +350,104 @@ $url = realurl('../new.md', 'path/a/old.md');
 // $url => 'path/new.md'
 ```
 
-@param string $url
-@param string $relative (optional)
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L396-L431)
 
 #### setenv
 
+```
+bool setenv(string $name, string $value, string $file = DOTENV_FILE)
+```
+
 Used to set environment variable inside `.env` file. 
 If you ignore third argument, `.env` file is taken from `DOTENV_FILE` constant.
-
-@param string $name
-@param string $value
-@param string $file  (optional)
-
-@return bool
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L443-L455)
 
 #### url_base64_encode
 
+```
+string url_base64_encode(string $string)
+```
+
 Encode string to URL-safe Base64 format.
-
-@param string $string
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L464-L466)
 
 #### url_base64_decode
 
+```
+string url_base64_decode(string $string)
+```
+
 Decode from URL-safe Base64 format.
-
-@param string $string
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L475-L478)
 
 #### xencrypt
 
+```
+string xencrypt(string $string, string $key)
+```
+
 XOR encryption.
-
-@param string $string
-@param string $key
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L488-L496)
 
 #### xdecrypt
 
+```
+string xdecrypt(string $string, string $key)
+```
+
 XOR decryption.
-
-@param string $string
-@param string $key
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L506-L520)
 
 #### oencrypt
 
+```
+string oencrypt(string $string, string $key)
+```
+
 Implements OpenSSL encryption.
-
-@param string $string
-@param string $key
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L530-L536)
 
 #### odecrypt
 
+```
+string odecrypt(string $string, string $key)
+```
+
 Implements OpenSSL decryption.
-
-@param string $string
-@param string $key
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L546-L558)
 
 #### base32_decode
 
+```
+string base32_decode(string $string)
+```
+
 Decode string from Base32 format.
-
-@param string $string
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L567-L574)
 
 #### base32_encode
 
+```
+string base32_encode(string $string)
+```
+
 Encode string in Base32 format.
-
-@param string $string
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L583-L596)
 
 #### latinize
+
+```
+string latinize(string $string, bool $string = )
+```
 
 Latinize string. Set `$ru` to `true` in order to latinize also cyrillic characters.
 
@@ -471,14 +458,13 @@ $s = latinize('привет мир', true);
 // $s => 'privet mir'
 ```
 
-@param string $string
-@param bool   $string (optional)
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L613-L691)
 
 #### normalize
+
+```
+string normalize(string $string, string $extra, bool $ru = false)
+```
 
 Normalize string by removing non-English chars. 
 Can add some extra chars (using `$extra`) and cyrillic chars (using `$ru`).
@@ -492,37 +478,23 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-@param string $string
-@param string $extra
-@param bool   $ru     (optional)
-
-@return string
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L712-L724)
 
 #### sanitize_html_output
 
+```
+string sanitize_html_output(string $string)
+```
+
 Make HTML more compact.
-
-@param string $string
-
-@return string
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L733-L743)
 
-#### xpath_callback_remove
-
-@param DOMNode $tag
-
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L748-L750)
-
-#### xpath_callback_unwrap
-
-@param DOMNode $tag
-
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L755-L764)
-
 #### xpath
+
+```
+array|string xpath(DOMNode|string $xml, string $query = '/*', callable|int|null $callback = null, array $flags = [])
+```
 
 Wrapper around [DOMXPath](http://php.net/manual/en/class.domxpath.php). 
 Accepts XPath queries for extracting tags and callback function for tag manipulating.
@@ -546,29 +518,23 @@ Array
 
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
-@param DOMNode|string    $xml
-@param string            $query    (optional)
-@param callable|int|null $callback (optional)
-@param array             $flags    (optional)
-
-@return array|string
-
-@throws Exception
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L798-L884)
 
 #### readable_to_variable
 
+```
+mixed readable_to_variable(string $input, bool $trim = true)
+```
+
 Transforms readable form of string to variable.
-
-@param string $input
-@param bool   $trim  (optional)
-
-@return mixed
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L894-L920)
 
 #### to_storage
+
+```
+string|null to_storage(string $file, array $settings = [])
+```
 
 Help function for saving data in storage.
 
@@ -583,14 +549,13 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-@param string $file
-@param array  $settings (optional)
-
-@return string|null
-
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L941-L967)
 
 #### curl
+
+```
+array|string curl(array|string $urls, array $settings = [])
+```
 
 All-in-one cURL function with multi threading support.
 
@@ -603,7 +568,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L981-L1152)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L986-L1157)
 
 ### Authors
 
