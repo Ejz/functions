@@ -606,7 +606,7 @@ function base32_encode(string $string): string {
  * ```
  *
  * @param string $string
- * @param bool   $string (optional)
+ * @param bool   $ru     (optional)
  *
  * @return string
  */
