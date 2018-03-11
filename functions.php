@@ -977,6 +977,11 @@ function to_storage(string $file, array $settings = []): ?string {
  * ```
  *
  * For more examples, please, refer to [curl.md](docs/curl.md).
+ *
+ * @param array|string $urls
+ * @param array        $settings (optional)
+ *
+ * @return array|string
  */
 function curl($urls, array $settings = []) {
     $_urls = $urls;

@@ -13,7 +13,7 @@ To use it, just include `vendor/autoload.php` in your PHP script.
 
 ### Requirements
 
-PHP 5.6 or above (with cURL and GD library installed).
+PHP 7.1 or above (with cURL library installed).
 
 ### Contents
 
