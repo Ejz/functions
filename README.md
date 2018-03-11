@@ -446,7 +446,7 @@ Encode string in Base32 format.
 #### latinize
 
 ```
-string latinize(string $string, bool $string = )
+string latinize(string $string, bool $ru = false)
 ```
 
 Latinize string. Set `$ru` to `true` in order to latinize also cyrillic characters.
