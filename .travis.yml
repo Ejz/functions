@@ -8,8 +8,4 @@ branches:
   except:
   - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
-script:
-  - ./deploy.sh
-  - ./deploy.sh --test
-  - ./deploy.sh --exec ./gendoc.php
-  - ./gitci.sh "README.md" "Update README.md [skip ci]"
+script: ./travis.sh

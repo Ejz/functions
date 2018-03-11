@@ -1,8 +1,8 @@
 <?php
 
-include('functions.php');
+include 'functions.php';
 
-$output = array();
+$output = [];
 $content = file_get_contents('functions.php');
 preg_match_all('~^function\s+(.*?)\(~m', $content, $matches);
 $matches = $matches[1];
