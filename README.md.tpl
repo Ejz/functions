@@ -19,7 +19,7 @@ PHP 7.1 or above (with cURL library installed).
 
 ### Authors
 
-- [Evgeny Cernisev](https://ejz.ru) | [GitHub](https://github.com/Ejz) | <ejz@ya.ru>
+- [Evgeny Cernisev](https://ejz.io) | [GitHub](https://github.com/Ejz) | <ejz@ya.ru>
 
 ### License
 

@@ -24,7 +24,7 @@ Array
 By default 404 responses are accepted. Change it using `checker` parameter in settings:
 
 ```php
-$urls = ['http://ejz.ru', 'http://ejz.ru/404'];
+$urls = ['http://ejz.io', 'http://ejz.io/404'];
 $result = curl($urls, ['checker' => [200, 201, 202]]);
 print_r($result);
 ```
@@ -34,6 +34,6 @@ Output:
 ```
 Array
 (
-    [http://ejz.ru] => <!DOCTYPE html>...
+    [http://ejz.io] => <!DOCTYPE html>...
 )
 ```

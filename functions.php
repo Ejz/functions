@@ -938,7 +938,6 @@ function xpath($xml, string $query = '/*', $callback = null, array $flags = [])
  * Transforms readable form of string to variable.
  *
  * @param string $input
- * @param bool   $trim  (optional)
  *
  * @return mixed
  */

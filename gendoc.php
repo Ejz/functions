@@ -2,7 +2,7 @@
 
 include 'functions.php';
 
-$ignore = ['xpath_callback_remove', 'xpath_callback_unwrap'];
+$ignore = ['_xpath_callback_remove', '_xpath_callback_unwrap'];
 
 $output = [];
 $content = file_get_contents('functions.php');

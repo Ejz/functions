@@ -20,8 +20,8 @@ Array
 ### Remove tag
 
 ```php
-$xml = "<root><a>1</a><b>2</b><c>3</c></root>";
-$xml = xpath($xml, '//b', "xpath_callback_remove");
+$xml = '<root><a>1</a><b>2</b><c>3</c></root>';
+$xml = xpath($xml, '//b', '_xpath_callback_remove');
 echo $xml, "\n";
 ```
 
@@ -30,6 +30,24 @@ Output:
 ```
 <root>
   <a>1</a>
+  <c>3</c>
+</root>
+```
+
+### Unwrap tag
+
+```php
+$xml = '<root><b>1<inner>2</inner></b><c>3</c></root>';
+$xml = xpath($xml, '//b', '_xpath_callback_unwrap');
+echo $xml, "\n";
+```
+
+Output:
+
+```
+<root>
+  1
+  <inner>2</inner>
   <c>3</c>
 </root>
 ```
