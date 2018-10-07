@@ -931,7 +931,15 @@ function xpath($xml, string $query = '/*', $callback = null, array $flags = [])
     foreach ($tags as $tag) {
         $return[] = $doc->saveXML($tag);
     }
-    return (func_num_args() === 1 || $flags['implode']) ? implode('', $return) : $return;
+    if (func_num_args() === 1 || $flags['implode']) {
+        return implode('', $return);
+    }
+    if (preg_match('~@(\w+)$~', $query, $match)) {
+        return array_map(function ($return) use ($match) {
+            return get_tag_attributes($return, $match[1]);
+        }, $return);
+    }
+    return $return;
 }
 
 /**

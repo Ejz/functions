@@ -6,6 +6,15 @@ class TestXpath extends TestCase {
     /**
      */
     public function testXpathCommon() {
+        $xml = '<root> <img src="/"></img> </root>';
+        $srcs = xpath($xml, '//img/@src', null, ['ignore_fix' => true]);
+        $this->assertEquals('/', $srcs[0]);
+        //
+        $xml = '<root> <img src="/"></img> <img src="/mylink"></img> </root>';
+        $srcs = xpath($xml, '//img/@src', null, ['ignore_fix' => true]);
+        $this->assertEquals('/', $srcs[0]);
+        $this->assertEquals('/mylink', $srcs[1]);
+        //
         $xml = '<root> <img> 1 </img> </root>';
         [$_] = xpath($xml, '/*', null, ['ignore_fix' => true]);
         $this->assertRegexp('~^\s*<root>\s*<img>\s*1\s*</img>\s*</root>\s*$~', $_);
