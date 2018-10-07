@@ -534,12 +534,12 @@ For more examples, please, refer to [xpath.md](docs/xpath.md).
 #### readable_to_variable
 
 ```
-mixed readable_to_variable(string $input, bool $trim = true)
+mixed readable_to_variable(string $input, bool $trim = )
 ```
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L947-L974)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L945-L991)
 
 #### to_storage
 
@@ -560,7 +560,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L997-L1023)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1014-L1040)
 
 #### curl
 
@@ -579,7 +579,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1044-L1215)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1061-L1232)
 
 ### Authors
 
