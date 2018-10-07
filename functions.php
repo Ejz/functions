@@ -12,7 +12,8 @@ define('SQL_FORMAT_DATETIME', 'Y-m-d H:i:s');
  *
  * @return string
  */
-function esc(string $string, bool $decode = false): string {
+function esc(string $string, bool $decode = false): string
+{
     return call_user_func(
         $decode ? 'html_entity_decode' : 'htmlspecialchars',
         $string,
@@ -32,14 +33,15 @@ function esc(string $string, bool $decode = false): string {
  *
  * @return bool
  */
-function is_host($host): bool {
+function is_host($host): bool
+{
     return (
         is_string($host)
-            and
+            &&
         preg_match('/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i', $host)
-            and
+            &&
         strlen($host) <= 253
-            and
+            &&
         preg_match('/^[^\.]{1,63}(\.[^\.]{1,63})*$/', $host)
     );
 }
@@ -56,7 +58,8 @@ function is_host($host): bool {
  *
  * @return string
  */
-function host(string $url): string {
+function host(string $url): string
+{
     $host = strtolower(parse_url($url, PHP_URL_HOST));
     return is_host($host) ? $host : '';
 }
@@ -75,7 +78,8 @@ function host(string $url): string {
  *
  * @return string
  */
-function curdate(int $shift_days = 0): string {
+function curdate(int $shift_days = 0): string
+{
     return date(SQL_FORMAT_DATE, time() + ($shift_days * 24 * 3600));
 }
 
@@ -93,7 +97,8 @@ function curdate(int $shift_days = 0): string {
  *
  * @return string
  */
-function now(int $shift_seconds = 0): string {
+function now(int $shift_seconds = 0): string
+{
     return date(SQL_FORMAT_DATETIME, time() + $shift_seconds);
 }
 
@@ -104,7 +109,8 @@ function now(int $shift_seconds = 0): string {
  *
  * @return array
  */
-function nsplit(string $string): array {
+function nsplit(string $string): array
+{
     $string = str_replace("\r", "\n", $string);
     $string = explode("\n", $string);
     $string = array_map('trim', $string);
@@ -124,8 +130,9 @@ function nsplit(string $string): array {
  *
  * @return bool
  */
-function is_closure($closure): bool {
-    return (is_callable($closure) and is_object($closure));
+function is_closure($closure): bool
+{
+    return is_callable($closure) && is_object($closure);
 }
 
 /**
@@ -144,12 +151,13 @@ function is_closure($closure): bool {
  *
  * @return bool
  */
-function is_ip($ip, bool $allow_private = true): bool {
-    return (bool)(filter_var(
+function is_ip($ip, bool $allow_private = true): bool
+{
+    return (bool) filter_var(
         is_string($ip) ? $ip : '',
         FILTER_VALIDATE_IP,
         $allow_private ? 0 : (FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)
-    ));
+    );
 }
 
 /**
@@ -168,11 +176,14 @@ function is_ip($ip, bool $allow_private = true): bool {
  *
  * @return bool
  */
-function is_assoc($assoc): bool {
-    if (!is_array($assoc)) return false;
+function is_assoc($assoc): bool
+{
+    if (!is_array($assoc)) {
+        return false;
+    }
     $count0 = count($assoc);
     $count1 = count(array_filter(array_keys($assoc), 'is_string'));
-    return ($count0 === $count1);
+    return $count0 === $count1;
 }
 
 /**
@@ -189,8 +200,11 @@ function is_assoc($assoc): bool {
  *
  * @return bool
  */
-function is_regex($regex): bool {
-    if (is_numeric($regex) or !is_string($regex)) return false;
+function is_regex($regex): bool
+{
+    if (is_numeric($regex) || !is_string($regex)) {
+        return false;
+    }
     return (@ (preg_match($regex, '') !== false));
 }
 
@@ -208,9 +222,12 @@ function is_regex($regex): bool {
  *
  * @return string
  */
-function str_replace_once(string $needle, string $replace, string $haystack): string {
+function str_replace_once(string $needle, string $replace, string $haystack): string
+{
     @ $pos = strpos($haystack, $needle);
-    if ($pos === false) return $haystack;
+    if ($pos === false) {
+        return $haystack;
+    }
     return substr_replace($haystack, $replace, $pos, strlen($needle));
 }
 
@@ -231,20 +248,26 @@ function str_replace_once(string $needle, string $replace, string $haystack): st
  *
  * @return string
  */
-function str_truncate(string $string, int $length = 40, bool $center = false, string $replacer = '...'): string {
+function str_truncate(
+    string $string,
+    int $length = 40,
+    bool $center = false,
+    string $replacer = '...'
+): string
+{
     $l = mb_strlen($replacer);
-    if ($center and $length < (2 + $l)) $length = (2 + $l);
-    if (!$center and $length < (1 + $l)) $length = (1 + $l);
-    if ($center and mb_strlen($string) > $length) {
+    $length =  ? max($length, $center ? $l + 2 : $l + 1);
+    if ($center && mb_strlen($string) > $length) {
         $length -= $l;
         $begin = ceil($length / 2);
         $end = $length - $begin;
         return mb_substr($string, 0, $begin) . $replacer . mb_substr($string, - $end);
-    } elseif (!$center and mb_strlen($string) > $length) {
+    } elseif (!$center && mb_strlen($string) > $length) {
         $length -= $l;
         $begin = $length;
         return mb_substr($string, 0, $begin) . $replacer;
-    } else return $string;
+    }
+    return $string;
 }
 
 /**
@@ -265,10 +288,10 @@ function str_truncate(string $string, int $length = 40, bool $center = false, st
  *
  * @return string
  */
-function file_get_ext(string $file): string {
+function file_get_ext(string $file): string
+{
     preg_match('~\.([a-z0-9A-Z]{1,5})$~', $file, $match);
-    if (!$match) return '';
-    return strtolower($match[1]);
+    return $match ? strtolower($match[1]) : '';
 }
 
 /**
@@ -289,9 +312,11 @@ function file_get_ext(string $file): string {
  *
  * @return string
  */
-function file_get_name(string $file): string {
-    if (substr($file, -1) === '/')
+function file_get_name(string $file): string
+{
+    if (substr($file, -1) === '/') {
         return '';
+    }
     $file = basename($file);
     return preg_replace('~\.([a-z0-9A-Z]{1,5})$~', '', $file);
 }
@@ -316,17 +341,20 @@ function file_get_name(string $file): string {
  *
  * @return array|string|null
  */
-function get_tag_attributes(string $tag, string $attribute = null) {
+function get_tag_attributes(string $tag, string $attribute = null)
+{
     $tag = preg_replace('~^\s*(<\w+\b([^>]*)>).*$~is', '$2', $tag);
-    preg_match_all('~\b(?P<attr>[\w-]+)=([\'"]?)(?P<value>.*?)\2(?=\s|>|$)~', $tag, $matches, PREG_SET_ORDER);
+    preg_match_all(
+        '~\b(?P<attr>[\w-]+)=([\'"]?)(?P<value>.*?)\2(?=\s|>|$)~',
+        $tag,
+        $matches,
+        PREG_SET_ORDER
+    );
     $collector = [];
     foreach ($matches as $match) {
-        $collector[strtolower($match['attr'])] = esc($match['value'], $decode = true);
+        $collector[strtolower($match['attr'])] = esc($match['value'], true);
     }
-    if (!is_null($attribute)) {
-        return array_key_exists($attribute, $collector) ? $collector[$attribute] : null;
-    }
-    return $collector;
+    return is_null($attribute) ? $collector : ($collector[$attribute] ?? null);
 }
 
 /**
@@ -353,21 +381,30 @@ function get_tag_attributes(string $tag, string $attribute = null) {
  *
  * @return string
  */
-function prepare_tag_attributes(array $attributes): string {
+function prepare_tag_attributes(array $attributes): string
+{
     $collector = [];
     foreach ($attributes as $k => $v) {
-        if (!$k or (!$v and $v !== '0')) continue;
+        if ($k === '' || $v === '') {
+            continue;
+        }
         if (is_assoc($v)) {
             $_collector = [];
             foreach ($v as $_k => $_v) {
-                if (!$_k or (!$_v and $_v !== '0')) continue;
-                $_collector[] = sprintf('%s:%s', esc($_k), esc($_v));
+                if ($_k === '' || $_v === '') {
+                    continue;
+                }
+                $_collector[] = $_k . ':' . $_v . ';';
             }
-            $v = implode(';', $_collector) . ($_collector ? ';' : '');
+            $v = implode('', $_collector);
         } elseif (is_array($v)) {
-            $v = implode(' ', array_values(array_filter($v)));
+            $v = implode(' ', array_values(array_filter($v, function ($v) {
+                return !is_array($v) && $v !== '';
+            })));
         }
-        if (!$v and $v !== '0') continue;
+        if ($v === '') {
+            continue;
+        }
         $collector[] = sprintf('%s="%s"', $k, esc($v));
     }
     return implode(' ', $collector);
@@ -393,26 +430,31 @@ function prepare_tag_attributes(array $attributes): string {
  *
  * @return string
  */
-function realurl(string $url, string $relative = ''): string {
-    if (strpos($url, '#') === 0) return '';
-    if (strpos($url, 'javascript:') === 0) return '';
-    if (strpos($url, 'mailto:') === 0) return '';
-    if (strpos($url, 'skype:') === 0) return '';
-    if (strpos($url, 'data:') === 0) return '';
+function realurl(string $url, string $relative = ''): string
+{
+    $starts = ['#', 'javascript:', 'mailto:', 'skype:', 'data:', 'tel:'];
+    foreach ($starts as $start) {
+        if (strpos($url, $start) === 0) {
+            return '';
+        }
+    }
     $scheme = function ($_) {
         return parse_url($_, PHP_URL_SCHEME);
     };
-    if (host($relative) and host($url) and !$scheme($url))
+    if (host($relative) && host($url) && !$scheme($url)) {
         $url = ($scheme($relative) ?: 'http') . ':' . $url;
+    }
     $normalize = function ($url) {
         $parse = parse_url($url);
         $head = '';
         if (isset($parse['scheme'])) {
             $head = "{$parse['scheme']}://{$parse['host']}";
             $url = substr($url, strlen($head));
-            if (!$url) $url = '/';
+            $url = strlen($url) ? $url : '/';
             $url = preg_replace('~\?+$~', '', $url);
-        } elseif (!$url) return '';
+        } elseif (!strlen($url)) {
+            return '';
+        }
         do {
             $old = $url;
             $url = preg_replace('~/+~', '/', $url);
@@ -422,11 +464,15 @@ function realurl(string $url, string $relative = ''): string {
         } while ($old != $url);
         return $head . $url;
     };
-    if (host($url)) return $normalize($url);
-    if (strpos($url, '/') === 0)
+    if (host($url)) {
+        return $normalize($url);
+    }
+    if (strpos($url, '/') === 0) {
         return $normalize(preg_replace('~(?<!/)/(?!/).*$~', '', $relative) . $url);
-    if (strpos($url, '?') === 0)
+    }
+    if (strpos($url, '?') === 0) {
         return $normalize(preg_replace('~\?.*$~', '', $relative) . $url);
+    }
     return $normalize(preg_replace('~(/)?[^/]+$~', '$1', $relative) . $url);
 }
 
@@ -440,9 +486,11 @@ function realurl(string $url, string $relative = ''): string {
  *
  * @return bool
  */
-function setenv(string $name, string $value, string $file = DOTENV_FILE): bool {
-    if (!is_file($file) or !is_writable($file))
+function setenv(string $name, string $value, string $file = DOTENV_FILE): bool
+{
+    if (!is_file($file) || !is_writable($file)) {
         return false;
+    }
     $name = strtoupper($name);
     $env = file_get_contents($file);
     $name = preg_quote($name, '~');
@@ -450,8 +498,10 @@ function setenv(string $name, string $value, string $file = DOTENV_FILE): bool {
     $env = preg_replace_callback("~^({$name}=).*$~im", function ($match) use ($value) {
         return $match[1] . $value;
     }, $env, -1, $count);
-    if (!$count) $env .= (rtrim($env) == $env ? "\n" : '') . "{$name}={$value}\n";
-    return (bool)(file_put_contents($file, $env));
+    if (!$count) {
+        $env .= (rtrim($env) == $env ? "\n" : '') . "{$name}={$value}\n";
+    }
+    return (bool) file_put_contents($file, $env);
 }
 
 /**
@@ -461,7 +511,8 @@ function setenv(string $name, string $value, string $file = DOTENV_FILE): bool {
  *
  * @return string
  */
-function url_base64_encode(string $string): string {
+function url_base64_encode(string $string): string
+{
     return rtrim(strtr(base64_encode($string), '+/', '-_'), '=');
 }
 
@@ -472,8 +523,16 @@ function url_base64_encode(string $string): string {
  *
  * @return string
  */
-function url_base64_decode(string $string): string {
-    $string = base64_decode(str_pad(strtr($string, '-_', '+/'), strlen($string) % 4, '=', STR_PAD_RIGHT));
+function url_base64_decode(string $string): string
+{
+    $string = base64_decode(
+        str_pad(
+            strtr($string, '-_', '+/'),
+            strlen($string) % 4,
+            '=',
+            STR_PAD_RIGHT
+        )
+    );
     return $string === false ? '' : $string;
 }
 
@@ -485,12 +544,14 @@ function url_base64_decode(string $string): string {
  *
  * @return string
  */
-function xencrypt(string $string, string $key): string {
+function xencrypt(string $string, string $key): string
+{
     $string = mt_rand() . ':' . $string . ':' . mt_rand();
     for ($i = 0; $i < strlen($string); $i++) {
         $k = md5($key . (string)(substr($string, $i + 1)) . $i);
-        for ($j = 0; $j < strlen($k); $j++)
+        for ($j = 0; $j < strlen($k); $j++) {
             $string[$i] = $string[$i] ^ $k[$j];
+        }
     }
     return url_base64_encode($string);
 }
@@ -503,7 +564,8 @@ function xencrypt(string $string, string $key): string {
  *
  * @return string
  */
-function xdecrypt(string $string, string $key): string {
+function xdecrypt(string $string, string $key): string
+{
     $string = url_base64_decode($string);
     for ($i = strlen($string) - 1; $i >= 0; $i--) {
         @ $k = md5($key . (string)(substr($string, $i + 1)) . $i);
@@ -511,12 +573,12 @@ function xdecrypt(string $string, string $key): string {
             $string[$i] = $string[$i] ^ $k[$j];
     }
     $string = explode(':', $string, 2);
-    if (count($string) != 2 or !is_numeric($string[0]))
+    if (count($string) != 2 || !is_numeric($string[0])) {
         return '';
+    }
     $string = $string[1];
     $pos = strrpos($string, ':');
-    if (!$pos) return '';
-    return substr($string, 0, $pos);
+    return $pos ? substr($string, 0, $pos) : '';
 }
 
 /**
@@ -527,7 +589,8 @@ function xdecrypt(string $string, string $key): string {
  *
  * @return string
  */
-function oencrypt(string $string, string $key): string {
+function oencrypt(string $string, string $key): string
+{
     $method = 'aes-256-ofb';
     $iv = substr(md5($key), 0, 16);
     $string = mt_rand() . ':' . $string . ':' . mt_rand();
@@ -543,18 +606,19 @@ function oencrypt(string $string, string $key): string {
  *
  * @return string
  */
-function odecrypt(string $string, string $key): string {
+function odecrypt(string $string, string $key): string
+{
     $method = 'aes-256-ofb';
     $iv = substr(md5($key), 0, 16);
     $string = url_base64_decode($string);
     $string = openssl_decrypt($string, $method, $key, OPENSSL_RAW_DATA, $iv);
     $string = explode(':', $string, 2);
-    if (count($string) != 2 or !is_numeric($string[0]))
+    if (count($string) != 2 || !is_numeric($string[0])) {
         return '';
+    }
     $string = $string[1];
     $pos = strrpos($string, ':');
-    if (!$pos) return '';
-    return substr($string, 0, $pos);
+    return $pos ? substr($string, 0, $pos) : '';
 }
 
 /**
@@ -564,11 +628,13 @@ function odecrypt(string $string, string $key): string {
  *
  * @return string
  */
-function base32_decode(string $string): string {
+function base32_decode(string $string): string
+{
     static $map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     $tmp = [];
-    foreach (str_split($string) as $c)
+    foreach (str_split($string) as $c) {
         $tmp[] = sprintf('%05b', intval(strpos($map, $c)));
+    }
     $args = array_map('bindec', str_split(implode('', $tmp), 8));
     return rtrim(pack('C*', ...$args), "\0");
 }
@@ -580,18 +646,22 @@ function base32_decode(string $string): string {
  *
  * @return string
  */
-function base32_encode(string $string): string {
+function base32_encode(string $string): string
+{
     static $map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     $output = [];
     $collect = [];
-    for ($i = 0; $i < strlen($string); $i++)
+    for ($i = 0; $i < strlen($string); $i++) {
         $collect[] = str_pad(decbin(ord($string[$i])), 8, '0', STR_PAD_LEFT);
+    }
     $neededPad = 5 - (count($collect) % 5);
-    if ($neededPad > 0 and $neededPad < 5)
+    if ($neededPad > 0 and $neededPad < 5) {
         $collect[] = str_repeat('0', 5 - $neededPad);
+    }
     $collect = implode('', $collect);
-    foreach (str_split($collect, 5) as $binaryChunk)
+    foreach (str_split($collect, 5) as $binaryChunk) {
         $output[] = $map[bindec($binaryChunk)];
+    }
     return implode('', $output);
 }
 
@@ -610,7 +680,8 @@ function base32_encode(string $string): string {
  *
  * @return string
  */
-function latinize(string $string, bool $ru = false): string {
+function latinize(string $string, bool $ru = false): string
+{
     static $letters = null;
     if (is_null($letters)) {
         $letters = <<<END
@@ -631,13 +702,16 @@ function latinize(string $string, bool $ru = false): string {
 END;
         $letters = nsplit($letters);
     }
-    $split = function ($_) { return preg_split('/(?<!^)(?!$)/u', $_); };
+    $split = function ($_) {
+        return preg_split('/(?<!^)(?!$)/u', $_);
+    };
     $n = count($letters) / 2;
-    for ($i = 0; $i < $n; $i++)
+    for ($i = 0; $i < $n; $i++) {
         $string = strtr(
             $string,
             array_combine($split($letters[$i * 2]), $split($letters[$i * 2 + 1]))
         );
+    }
     $string = strtr($string, [
         'خ' => 'kh', 'ذ' => 'th', 'ش' => 'sh', 'ظ' => 'th',
         'ع' => 'aa', 'غ' => 'gh', 'ψ' => 'ps', 'Ψ' => 'PS',
@@ -709,7 +783,8 @@ END;
  *
  * @return string
  */
-function normalize(string $string, string $extra = '', bool $ru = false): string {
+function normalize(string $string, string $extra = '', bool $ru = false): string
+{
     $string = mb_strtolower($string, 'utf-8');
     $extra = preg_quote($extra, '|');
     if ($ru) {
@@ -724,41 +799,26 @@ function normalize(string $string, string $extra = '', bool $ru = false): string
 }
 
 /**
- * Make HTML more compact.
- *
- * @param string $string
- *
- * @return string
- */
-function sanitize_html_output(string $string): string {
-    return preg_replace([
-        '~\s+~s',
-        '~>\s+<~s',
-        '~<!--.*?-->~s',
-    ], [
-        ' ',
-        '><',
-        '',
-    ], $string);
-}
-
-/**
  * @param DOMNode $tag
  */
-function xpath_callback_remove(DOMNode $tag) {
+function _xpath_callback_remove(DOMNode $tag)
+{
     $tag->parentNode->removeChild($tag);
 }
 
 /**
  * @param DOMNode $tag
  */
-function xpath_callback_unwrap(DOMNode $tag) {
+function _xpath_callback_unwrap(DOMNode $tag)
+{
     if ($tag->hasChildNodes()) {
         $collector = [];
-        foreach ($tag->childNodes as $child)
+        foreach ($tag->childNodes as $child) {
             $collector[] = $child;
-        for ($i = 0; $i < count($collector); $i++)
+        }
+        for ($i = 0; $i < count($collector); $i++) {
             $tag->parentNode->insertBefore($collector[$i], $tag);
+        }
     }
     $tag->parentNode->removeChild($tag);
 }
@@ -795,27 +855,26 @@ function xpath_callback_unwrap(DOMNode $tag) {
  *
  * @throws Exception
  */
-function xpath($xml, string $query = '/*', $callback = null, array $flags = []) {
+function xpath($xml, string $query = '/*', $callback = null, array $flags = [])
+{
+    // self-closing tags
+    $sct = 'area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr';
     $flags = $flags + [
         'preserve_white_space' => false,
         'ignore_fix' => false,
         'implode' => false,
     ];
-    if (is_string($xml) and !$flags['ignore_fix']) {
+    if (is_string($xml) && !$flags['ignore_fix']) {
         // FIX HTML TO BE COMPATIBLE WITH XML
-        $tags = 'area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr';
-        $xml = preg_replace_callback("~<({$tags})\b[^>]*>~", function ($m) {
+        $xml = preg_replace_callback("~<({$sct})\b[^>]*>~", function ($m) {
             $last = mb_substr($m[0], -2);
-            if ($last != "/>") return rtrim(mb_substr($m[0], 0, -1)) . ' />';
-            return $m[0];
+            return $last == '/>' ? $m[0] : rtrim(mb_substr($m[0], 0, -1)) . ' />';
         }, $xml);
-        $xml = preg_replace_callback('~<html\b[^>]*>~', function ($m) {
+        $xml = preg_replace_callback('~<html\b[^>]*xmlns[^>]*>~', function ($m) {
             $attrs = get_tag_attributes($m[0]);
-            if (!isset($attrs['xmlns'])) return $m[0];
             unset($attrs['xmlns']);
             $attrs = prepare_tag_attributes($attrs);
-            $attrs = $attrs ? " {$attrs}" : '';
-            return "<html{$attrs}>";
+            return "<html {$attrs}>";
         }, $xml);
     }
     $query = preg_replace(
@@ -844,54 +903,49 @@ function xpath($xml, string $query = '/*', $callback = null, array $flags = []) 
     libxml_clear_errors();
     $xpath = new DOMXPath($doc);
     $tags = $xpath->query($query);
-    if (!($tags instanceof DOMNodeList))
-        throw new Exception('Invalid query: "' . $query . '"!');
+    if (!$tags instanceof DOMNodeList) {
+        throw new Exception(__FUNCTION__ . ': Invalid query: "' . $query . '"!');
+    }
     if (is_int($callback)) {
-        if ($callback < 0) {
-            $sum = 0;
-            foreach ($tags as $tag) $sum += 1;
-            $callback = $sum + $callback;
-            if ($callback < 0 or $callback > $sum - 1)
-                return '';
-        }
-        $i = 0;
-        foreach ($tags as $tag) {
-            if ($i === $callback)
-                return $doc->saveXML($tag);
-            $i += 1;
-        }
-        throw new Exception('Unexpected behaviour!');
+        return $doc->saveXML($tags->item(
+            $callback < 0 ? $callback + count($tags) : $callback
+        ));
     }
     if (is_callable($callback)) {
         $callback = function ($tag) use ($callback) {
             $_ = $tag;
-            while (isset($_->parentNode))
+            while (isset($_->parentNode)) {
                 $_ = $_->parentNode;
-            if ($_ instanceof DOMDocument)
+            }
+            if ($_ instanceof DOMDocument) {
                 $callback($tag);
+            }
         };
-        $collector = array();
-        foreach ($tags as $tag) $collector[] = $tag;
-        $tags = $collector;
-        for ($i = 0, $len = count($tags); $i < $len; $i++)
+        $tags = iterator_to_array($tags, false);
+        for ($i = 0, $len = count($tags); $i < $len; $i++) {
             $callback($tags[$i]);
+        }
         return $doc->saveXML($doc->documentElement);
     }
-    $return = array();
-    foreach ($tags as $tag)
+    $return = [];
+    foreach ($tags as $tag) {
         $return[] = $doc->saveXML($tag);
-    return (func_num_args() === 1 or $flags['implode']) ? implode('', $return) : $return;
+    }
+    return (func_num_args() === 1 || $flags['implode']) ? implode('', $return) : $return;
 }
 
 /**
  * Transforms readable form of string to variable.
+ *
+ * @todo Reformat
  *
  * @param string $input
  * @param bool   $trim  (optional)
  *
  * @return mixed
  */
-function readable_to_variable(string $input, bool $trim = true) {
+function readable_to_variable(string $input, bool $trim = true)
+{
     $self = __FUNCTION__;
     if ($trim) $input = trim($input);
     if (is_null($input)) return null;
@@ -932,6 +986,8 @@ function readable_to_variable(string $input, bool $trim = true) {
  * ```
  *
  * For more examples, please, refer to [to_storage.md](docs/to_storage.md).
+ *
+ * @todo Reformat
  *
  * @param string $file
  * @param array  $settings (optional)
@@ -977,6 +1033,8 @@ function to_storage(string $file, array $settings = []): ?string {
  * ```
  *
  * For more examples, please, refer to [curl.md](docs/curl.md).
+ *
+ * @todo Reformat
  *
  * @param array|string $urls
  * @param array        $settings (optional)
