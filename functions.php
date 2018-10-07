@@ -937,36 +937,53 @@ function xpath($xml, string $query = '/*', $callback = null, array $flags = [])
 /**
  * Transforms readable form of string to variable.
  *
- * @todo Reformat
- *
  * @param string $input
  * @param bool   $trim  (optional)
  *
  * @return mixed
  */
-function readable_to_variable(string $input, bool $trim = true)
+function readable_to_variable(string $input)
 {
     $self = __FUNCTION__;
-    if ($trim) $input = trim($input);
-    if (is_null($input)) return null;
-    if ($input === "") return "";
+    if (is_null($input)) {
+        return null;
+    }
+    if ($input === '') {
+        return '';
+    }
     $lower = strtolower($input);
-    if ($lower === 'true') return true;
-    if ($lower === 'false') return false;
-    if ($lower === 'null') return null;
-    if (defined($input)) return constant($input);
-    if (is_float($input)) return floatval($input);
-    if (is_numeric($input)) return intval($input);
+    if ($lower === 'true') {
+        return true;
+    }
+    if ($lower === 'false') {
+        return false;
+    }
+    if ($lower === 'null') {
+        return null;
+    }
+    if (defined($input)) {
+        return constant($input);
+    }
+    if (is_float($input)) {
+        return floatval($input);
+    }
+    if (is_numeric($input)) {
+        return intval($input);
+    }
     if (preg_match('~^\[(.*)\]$~s', $input, $match)) {
         $match[1] = trim($match[1]);
-        if ($match[1] === "") return [];
+        if ($match[1] === '') {
+            return [];
+        }
         $array = [];
         $kvs = preg_split('~\s*,\s*~', $match[1]);
         foreach ($kvs as $kv) {
             $kv = explode('=>', $kv, 2);
-            if (count($kv) == 2)
-                $array[$self($kv[0], $trim)] = $self($kv[1], $trim);
-            else $array[] = $self($kv[0], $trim);
+            if (count($kv) == 2) {
+                $array[$self($kv[0])] = $self($kv[1]);
+            } else {
+                $array[] = $self($kv[0]);
+            }
         }
         return $array;
     }
