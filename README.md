@@ -45,8 +45,6 @@ PHP 7.1 or above (with cURL library installed).
 - [base32_encode](#base32_encode)
 - [latinize](#latinize)
 - [normalize](#normalize)
-- [_xpath_callback_remove](#_xpath_callback_remove)
-- [_xpath_callback_unwrap](#_xpath_callback_unwrap)
 - [xpath](#xpath)
 - [readable_to_variable](#readable_to_variable)
 - [to_storage](#to_storage)
@@ -481,26 +479,6 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L786-L799)
 
-#### _xpath_callback_remove
-
-```
- _xpath_callback_remove(DOMNode $tag)
-```
-
-
-
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L804-L807)
-
-#### _xpath_callback_unwrap
-
-```
- _xpath_callback_unwrap(DOMNode $tag)
-```
-
-
-
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L812-L824)
-
 #### xpath
 
 ```
@@ -534,12 +512,12 @@ For more examples, please, refer to [xpath.md](docs/xpath.md).
 #### readable_to_variable
 
 ```
-mixed readable_to_variable(string $input, bool $trim = )
+mixed readable_to_variable(string $input)
 ```
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L945-L991)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L944-L990)
 
 #### to_storage
 
@@ -560,7 +538,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1014-L1040)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1013-L1039)
 
 #### curl
 
@@ -579,11 +557,11 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1061-L1232)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1060-L1231)
 
 ### Authors
 
-- [Evgeny Cernisev](https://ejz.ru) | [GitHub](https://github.com/Ejz) | <ejz@ya.ru>
+- [Evgeny Cernisev](https://ejz.io) | [GitHub](https://github.com/Ejz) | <ejz@ya.ru>
 
 ### License
 
