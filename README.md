@@ -45,7 +45,8 @@ PHP 7.1 or above (with cURL library installed).
 - [base32_encode](#base32_encode)
 - [latinize](#latinize)
 - [normalize](#normalize)
-- [sanitize_html_output](#sanitize_html_output)
+- [_xpath_callback_remove](#_xpath_callback_remove)
+- [_xpath_callback_unwrap](#_xpath_callback_unwrap)
 - [xpath](#xpath)
 - [readable_to_variable](#readable_to_variable)
 - [to_storage](#to_storage)
@@ -62,7 +63,7 @@ string esc(string $string, bool $decode = false)
 Encode/decode HTML chars in given string: `>`, `<`, `&`, `'` and `"`. 
 Use this function to escape HTML tags content and atrribute values.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L15-L21)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L15-L22)
 
 #### is_host
 
@@ -77,7 +78,7 @@ $bool = is_host('github.com');
 // $bool => true
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L35-L45)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L36-L47)
 
 #### host
 
@@ -92,7 +93,7 @@ $host = host('https://github.com/');
 // $host => 'github.com'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L59-L62)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L61-L65)
 
 #### curdate
 
@@ -109,7 +110,7 @@ $yesterday = curdate(-1);
 // $yesterday => '2017-08-16'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L78-L80)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L81-L84)
 
 #### now
 
@@ -126,7 +127,7 @@ $min_ago = now(-60);
 // $min_ago => '2017-08-17 11:03:31'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L96-L98)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L100-L103)
 
 #### nsplit
 
@@ -136,7 +137,7 @@ array nsplit(string $string)
 
 Split line by line given string. Each line is trimmed, empty ones are filtered out.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L107-L113)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L112-L119)
 
 #### is_closure
 
@@ -151,7 +152,7 @@ $is_closure = is_closure(function () { ; });
 // $is_closure => true
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L127-L129)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L133-L136)
 
 #### is_ip
 
@@ -169,7 +170,7 @@ $is_ip = is_ip($ip, false);
 // $is_ip => false
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L147-L153)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L154-L161)
 
 #### is_assoc
 
@@ -188,7 +189,7 @@ $is_assoc = is_assoc(['key' => 'value']);
 // $is_assoc => true
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L171-L176)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L179-L187)
 
 #### is_regex
 
@@ -205,7 +206,7 @@ $is_regex = is_regex('~\w~');
 // $is_regex => true
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L192-L195)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L203-L209)
 
 #### str_replace_once
 
@@ -220,12 +221,12 @@ $str = str_replace_once('foo', 'bar', 'foo foo');
 // $str => 'bar foo'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L211-L215)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L225-L232)
 
 #### str_truncate
 
 ```
-string str_truncate(string $string, int $length = 40, bool $center = false, string $replacer = '...')
+string str_truncate(string $string, int $length = , bool $center = , string $replacer = )
 ```
 
 Truncate string to certain length (be default 40 chars).
@@ -237,7 +238,7 @@ $str = str_truncate('Hello, world!', 5, true);
 // $str => 'H...!'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L234-L248)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L251-L271)
 
 #### file_get_ext
 
@@ -258,7 +259,7 @@ $ext = file_get_ext('/var/www/');
 // $ext => ''
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L268-L272)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L291-L295)
 
 #### file_get_name
 
@@ -279,7 +280,7 @@ $name = file_get_name('/var/www/');
 // $name => ''
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L292-L297)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L315-L322)
 
 #### get_tag_attributes
 
@@ -301,7 +302,7 @@ $attribute = get_tag_attributes($tag, '_target');
 // $attribute => null
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L319-L330)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L344-L358)
 
 #### prepare_tag_attributes
 
@@ -328,7 +329,7 @@ $prepared = prepare_tag_attributes($attributes);
 // $prepared => 'style="margin-top:0;display:flex;"'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L356-L374)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L384-L411)
 
 #### realurl
 
@@ -350,7 +351,7 @@ $url = realurl('../new.md', 'path/a/old.md');
 // $url => 'path/new.md'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L396-L431)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L433-L477)
 
 #### setenv
 
@@ -361,7 +362,7 @@ bool setenv(string $name, string $value, string $file = DOTENV_FILE)
 Used to set environment variable inside `.env` file. 
 If you ignore third argument, `.env` file is taken from `DOTENV_FILE` constant.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L443-L455)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L489-L505)
 
 #### url_base64_encode
 
@@ -371,7 +372,7 @@ string url_base64_encode(string $string)
 
 Encode string to URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L464-L466)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L514-L517)
 
 #### url_base64_decode
 
@@ -381,7 +382,7 @@ string url_base64_decode(string $string)
 
 Decode from URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L475-L478)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L526-L537)
 
 #### xencrypt
 
@@ -391,7 +392,7 @@ string xencrypt(string $string, string $key)
 
 XOR encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L488-L496)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L547-L557)
 
 #### xdecrypt
 
@@ -401,7 +402,7 @@ string xdecrypt(string $string, string $key)
 
 XOR decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L506-L520)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L567-L582)
 
 #### oencrypt
 
@@ -411,7 +412,7 @@ string oencrypt(string $string, string $key)
 
 Implements OpenSSL encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L530-L536)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L592-L599)
 
 #### odecrypt
 
@@ -421,7 +422,7 @@ string odecrypt(string $string, string $key)
 
 Implements OpenSSL decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L546-L558)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L609-L622)
 
 #### base32_decode
 
@@ -431,7 +432,7 @@ string base32_decode(string $string)
 
 Decode string from Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L567-L574)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L631-L640)
 
 #### base32_encode
 
@@ -441,7 +442,7 @@ string base32_encode(string $string)
 
 Encode string in Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L583-L596)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L649-L666)
 
 #### latinize
 
@@ -458,7 +459,7 @@ $s = latinize('привет мир', true);
 // $s => 'privet mir'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L613-L691)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L683-L765)
 
 #### normalize
 
@@ -478,17 +479,27 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L712-L724)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L786-L799)
 
-#### sanitize_html_output
+#### _xpath_callback_remove
 
 ```
-string sanitize_html_output(string $string)
+ _xpath_callback_remove(DOMNode $tag)
 ```
 
-Make HTML more compact.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L733-L743)
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L804-L807)
+
+#### _xpath_callback_unwrap
+
+```
+ _xpath_callback_unwrap(DOMNode $tag)
+```
+
+
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L812-L824)
 
 #### xpath
 
@@ -518,7 +529,7 @@ Array
 
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L798-L884)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L858-L935)
 
 #### readable_to_variable
 
@@ -528,7 +539,7 @@ mixed readable_to_variable(string $input, bool $trim = true)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L894-L920)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L947-L974)
 
 #### to_storage
 
@@ -549,7 +560,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L941-L967)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L997-L1023)
 
 #### curl
 
@@ -568,7 +579,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L986-L1157)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1044-L1215)
 
 ### Authors
 
