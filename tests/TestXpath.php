@@ -61,7 +61,7 @@ class TestXpath extends TestCase {
         $this->assertRegexp("~^\s*<root>\s*<one>1</one>\s*<two>2</two>\s*</root>\s*$~", $xml);
         //
         $xml = '<root> <a>1</a> <b>2</b> <c>3</c> </root>';
-        $xml = xpath($xml, '//b', 'xpath_callback_remove');
+        $xml = xpath($xml, '//b', '_xpath_callback_remove');
         $this->assertRegexp("~^\s*<root>\s*<a>1</a>\s*<c>3</c>\s*</root>\s*$~", $xml);
         //
         $xml = '<root><a remove=\'1\'><b>b</b><c remove=\'1\'></c></a></root>';
