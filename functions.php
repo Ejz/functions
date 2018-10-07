@@ -256,7 +256,7 @@ function str_truncate(
 ): string
 {
     $l = mb_strlen($replacer);
-    $length =  ? max($length, $center ? $l + 2 : $l + 1);
+    $length = max($length, $center ? $l + 2 : $l + 1);
     if ($center && mb_strlen($string) > $length) {
         $length -= $l;
         $begin = ceil($length / 2);
