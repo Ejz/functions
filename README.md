@@ -31,6 +31,7 @@ PHP 7.1 or above (with cURL library installed).
 - [str_truncate](#str_truncate)
 - [file_get_ext](#file_get_ext)
 - [file_get_name](#file_get_name)
+- [template](#template)
 - [get_tag_attributes](#get_tag_attributes)
 - [prepare_tag_attributes](#prepare_tag_attributes)
 - [realurl](#realurl)
@@ -280,6 +281,48 @@ $name = file_get_name('/var/www/');
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L315-L322)
 
+#### template
+
+```
+ template()
+```
+
+Native PHP templating engine.
+
+```html
+<!-- test.tpl -->
+<html>
+<head>
+    <title><?=$title?></title>
+</head>
+<body>
+    <?=$body?>
+</body>
+</html>
+```
+
+```php
+echo template('test.tpl', [
+    'title' => 'Test Title',
+    'body' => '<h1>Hello!</h1>',
+]);
+```
+
+Output:
+
+```html
+<html>
+<head>
+    <title>Test Title</title>
+</head>
+<body>
+    <h1>Hello!</h1>
+</body>
+</html>
+```
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L359-L365)
+
 #### get_tag_attributes
 
 ```
@@ -300,7 +343,7 @@ $attribute = get_tag_attributes($tag, '_target');
 // $attribute => null
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L344-L358)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L387-L401)
 
 #### prepare_tag_attributes
 
@@ -327,7 +370,7 @@ $prepared = prepare_tag_attributes($attributes);
 // $prepared => 'style="margin-top:0;display:flex;"'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L384-L411)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L427-L454)
 
 #### realurl
 
@@ -349,7 +392,7 @@ $url = realurl('../new.md', 'path/a/old.md');
 // $url => 'path/new.md'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L433-L477)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L476-L520)
 
 #### setenv
 
@@ -360,7 +403,7 @@ bool setenv(string $name, string $value, string $file = DOTENV_FILE)
 Used to set environment variable inside `.env` file. 
 If you ignore third argument, `.env` file is taken from `DOTENV_FILE` constant.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L489-L505)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L532-L548)
 
 #### url_base64_encode
 
@@ -370,7 +413,7 @@ string url_base64_encode(string $string)
 
 Encode string to URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L514-L517)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L557-L560)
 
 #### url_base64_decode
 
@@ -380,7 +423,7 @@ string url_base64_decode(string $string)
 
 Decode from URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L526-L537)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L569-L580)
 
 #### xencrypt
 
@@ -390,7 +433,7 @@ string xencrypt(string $string, string $key)
 
 XOR encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L547-L557)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L590-L600)
 
 #### xdecrypt
 
@@ -400,7 +443,7 @@ string xdecrypt(string $string, string $key)
 
 XOR decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L567-L582)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L610-L625)
 
 #### oencrypt
 
@@ -410,7 +453,7 @@ string oencrypt(string $string, string $key)
 
 Implements OpenSSL encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L592-L599)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L635-L642)
 
 #### odecrypt
 
@@ -420,7 +463,7 @@ string odecrypt(string $string, string $key)
 
 Implements OpenSSL decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L609-L622)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L652-L665)
 
 #### base32_decode
 
@@ -430,7 +473,7 @@ string base32_decode(string $string)
 
 Decode string from Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L631-L640)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L674-L683)
 
 #### base32_encode
 
@@ -440,7 +483,7 @@ string base32_encode(string $string)
 
 Encode string in Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L649-L666)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L692-L709)
 
 #### latinize
 
@@ -457,7 +500,7 @@ $s = latinize('привет мир', true);
 // $s => 'privet mir'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L683-L765)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L726-L808)
 
 #### normalize
 
@@ -477,7 +520,7 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L786-L799)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L829-L842)
 
 #### xpath
 
@@ -507,7 +550,7 @@ Array
 
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L858-L943)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L901-L986)
 
 #### readable_to_variable
 
@@ -517,7 +560,7 @@ mixed readable_to_variable(string $input)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L952-L998)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L995-L1041)
 
 #### to_storage
 
@@ -538,7 +581,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1021-L1047)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1064-L1090)
 
 #### curl
 
@@ -557,7 +600,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1068-L1239)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1111-L1282)
 
 ### Authors
 
