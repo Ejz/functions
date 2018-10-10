@@ -322,6 +322,49 @@ function file_get_name(string $file): string
 }
 
 /**
+ * Native PHP templating engine.
+ *
+ * ```html
+ * <!-- test.tpl -->
+ * <html>
+ * <head>
+ *     <title><?=$title?></title>
+ * </head>
+ * <body>
+ *     <?=$body?>
+ * </body>
+ * </html>
+ * ```
+ *
+ * ```php
+ * echo template('test.tpl', [
+ *     'title' => 'Test Title',
+ *     'body' => '<h1>Hello!</h1>',
+ * ]);
+ * ```
+ *
+ * Output:
+ *
+ * ```html
+ * <html>
+ * <head>
+ *     <title>Test Title</title>
+ * </head>
+ * <body>
+ *     <h1>Hello!</h1>
+ * </body>
+ * </html>
+ * ```
+ */
+function template(string $tpl, array $args = []): string
+{
+    extract($args);
+    ob_start();
+    include $tpl;
+    return ob_get_clean();
+}
+
+/**
  * Get tag attributes. Returns list. 
  * If second argument is not null, returns value of this argument 
  * (or null if no such argument).
