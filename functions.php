@@ -355,6 +355,11 @@ function file_get_name(string $file): string
  * </body>
  * </html>
  * ```
+ *
+ * @param string $tpl
+ * @param array  $args (optional)
+ *
+ * @return string
  */
 function template(string $tpl, array $args = []): string
 {
