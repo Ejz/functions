@@ -284,7 +284,7 @@ $name = file_get_name('/var/www/');
 #### template
 
 ```
- template()
+string template(string $tpl, array $args = [])
 ```
 
 Native PHP templating engine.
@@ -321,7 +321,7 @@ Output:
 </html>
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L359-L365)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L364-L370)
 
 #### get_tag_attributes
 
@@ -343,7 +343,7 @@ $attribute = get_tag_attributes($tag, '_target');
 // $attribute => null
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L387-L401)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L392-L406)
 
 #### prepare_tag_attributes
 
@@ -370,7 +370,7 @@ $prepared = prepare_tag_attributes($attributes);
 // $prepared => 'style="margin-top:0;display:flex;"'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L427-L454)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L432-L459)
 
 #### realurl
 
@@ -392,7 +392,7 @@ $url = realurl('../new.md', 'path/a/old.md');
 // $url => 'path/new.md'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L476-L520)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L481-L525)
 
 #### setenv
 
@@ -403,7 +403,7 @@ bool setenv(string $name, string $value, string $file = DOTENV_FILE)
 Used to set environment variable inside `.env` file. 
 If you ignore third argument, `.env` file is taken from `DOTENV_FILE` constant.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L532-L548)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L537-L553)
 
 #### url_base64_encode
 
@@ -413,7 +413,7 @@ string url_base64_encode(string $string)
 
 Encode string to URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L557-L560)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L562-L565)
 
 #### url_base64_decode
 
@@ -423,7 +423,7 @@ string url_base64_decode(string $string)
 
 Decode from URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L569-L580)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L574-L585)
 
 #### xencrypt
 
@@ -433,7 +433,7 @@ string xencrypt(string $string, string $key)
 
 XOR encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L590-L600)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L595-L605)
 
 #### xdecrypt
 
@@ -443,7 +443,7 @@ string xdecrypt(string $string, string $key)
 
 XOR decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L610-L625)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L615-L630)
 
 #### oencrypt
 
@@ -453,7 +453,7 @@ string oencrypt(string $string, string $key)
 
 Implements OpenSSL encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L635-L642)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L640-L647)
 
 #### odecrypt
 
@@ -463,7 +463,7 @@ string odecrypt(string $string, string $key)
 
 Implements OpenSSL decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L652-L665)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L657-L670)
 
 #### base32_decode
 
@@ -473,7 +473,7 @@ string base32_decode(string $string)
 
 Decode string from Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L674-L683)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L679-L688)
 
 #### base32_encode
 
@@ -483,7 +483,7 @@ string base32_encode(string $string)
 
 Encode string in Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L692-L709)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L697-L714)
 
 #### latinize
 
@@ -500,7 +500,7 @@ $s = latinize('привет мир', true);
 // $s => 'privet mir'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L726-L808)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L731-L813)
 
 #### normalize
 
@@ -520,7 +520,7 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L829-L842)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L834-L847)
 
 #### xpath
 
@@ -550,7 +550,7 @@ Array
 
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L901-L986)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L906-L991)
 
 #### readable_to_variable
 
@@ -560,7 +560,7 @@ mixed readable_to_variable(string $input)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L995-L1041)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1000-L1046)
 
 #### to_storage
 
@@ -581,7 +581,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1064-L1090)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1069-L1095)
 
 #### curl
 
@@ -600,7 +600,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1111-L1282)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1116-L1287)
 
 ### Authors
 
