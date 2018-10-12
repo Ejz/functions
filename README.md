@@ -47,6 +47,8 @@ PHP 7.1 or above (with cURL library installed).
 - [latinize](#latinize)
 - [normalize](#normalize)
 - [xpath](#xpath)
+- [mb_ucfirst](#mb_ucfirst)
+- [sanitize_html](#sanitize_html)
 - [readable_to_variable](#readable_to_variable)
 - [to_storage](#to_storage)
 - [curl](#curl)
@@ -552,6 +554,26 @@ For more examples, please, refer to [xpath.md](docs/xpath.md).
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L906-L991)
 
+#### mb_ucfirst
+
+```
+string mb_ucfirst(string $string)
+```
+
+Upper case of first letter.
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1000-L1006)
+
+#### sanitize_html
+
+```
+string sanitize_html(string $content)
+```
+
+Satinize HTML output.
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1015-L1053)
+
 #### readable_to_variable
 
 ```
@@ -560,7 +582,7 @@ mixed readable_to_variable(string $input)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1000-L1046)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1062-L1108)
 
 #### to_storage
 
@@ -581,7 +603,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1069-L1095)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1131-L1157)
 
 #### curl
 
@@ -600,7 +622,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1116-L1287)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1178-L1349)
 
 ### Authors
 
