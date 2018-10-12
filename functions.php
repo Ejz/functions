@@ -991,6 +991,68 @@ function xpath($xml, string $query = '/*', $callback = null, array $flags = [])
 }
 
 /**
+ * Upper case of first letter.
+ *
+ * @param string $string
+ *
+ * @return string
+ */
+function mb_ucfirst(string $string): string
+{
+    $len = mb_strlen($string);
+    $first = mb_substr($string, 0, 1);
+    $then = mb_substr($string, 1, $len - 1);
+    return mb_strtoupper($first) . $then;
+}
+
+/**
+ * Satinize HTML output.
+ *
+ * @param string $content
+ *
+ * @return string
+ */
+function sanitize_html(string $content): string
+{
+    $map = [];
+    $content = trim($content);
+    $ws_reg = '~(?P<begin><(textarea|pre|script)\b[^>]*?>)(?P<body>.*?)(?P<end></\\2\b[^>]*?>)~is';
+    $content = preg_replace_callback($ws_reg, function ($match) use (&$map) {
+        $key = count($map);
+        $map[$key] = trim($match['body']);
+        return $match['begin'] . $key . $match['end'];
+    }, $content);
+    $content = preg_replace('~\s*<!--.*?-->\s*~s', '', $content);
+    $content = preg_replace('~\s+~s', ' ', $content);
+    $reg = '~(?P<b><)(?P<c>/?)(?P<t>\w+)\b(?P<a>[^>]*?)\s*(?P<e>/?>)~';
+    $parts = preg_split($reg, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+    $parts = array_chunk($parts, 6);
+    $inline = array_flip(['a', 'span', 'b', 'strong', 'i', 'em', 'code']);
+    $ex = [];
+    $content = [];
+    for ($i = 0, $l = count($parts); $i < $l; $i++) {
+        if ($i == $l - 1) {
+            $content[] = $parts[$i][0];
+            continue;
+        }
+        [$s, $b, $c, $t, $a, $e] = $parts[$i];
+        if ($i == 0) {
+            $s = rtrim($s);
+        }
+        if ($s === ' ' && (empty($ex[0]) || !empty($c) || !isset($ex[1], $inline[$t]))) {
+            $s = '';
+        }
+        $content[] = $s . $b . $c . $t . $a . $e;
+        $ex = [$c, $t];
+    }
+    $content = implode('', $content);
+    $content = preg_replace_callback($ws_reg, function ($match) use ($map) {
+        return $match['begin'] . $map[$match['body']] . $match['end'];
+    }, $content);
+    return $content;
+}
+
+/**
  * Transforms readable form of string to variable.
  *
  * @param string $input
