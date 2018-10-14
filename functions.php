@@ -553,6 +553,26 @@ function setenv(string $name, string $value, string $file = DOTENV_FILE): bool
 }
 
 /**
+ * Used to return a value from translation map. 
+ * Function optionally receives secord argument (`LANG`) and third argument (`LANG_FILE`).
+ *
+ * @param string $var
+ * @param string $lang      (optional)
+ * @param string $lang_file (optional)
+ *
+ * @return string
+ */
+function _T(string $var, string $lang = LANG, string $lang_file = LANG_FILE): string
+{
+    static $maps = [];
+    if (!array_key_exists($lang_file, $maps)) {
+        $maps[$lang_file] = require $lang_file;
+    }
+    $key = $lang . '-' . $var;
+    return $maps[$lang_file][$key] ?? '';
+}
+
+/**
  * Encode string to URL-safe Base64 format.
  *
  * @param string $string
