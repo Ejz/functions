@@ -36,6 +36,7 @@ PHP 7.1 or above (with cURL library installed).
 - [prepare_tag_attributes](#prepare_tag_attributes)
 - [realurl](#realurl)
 - [setenv](#setenv)
+- [_T](#_T)
 - [url_base64_encode](#url_base64_encode)
 - [url_base64_decode](#url_base64_decode)
 - [xencrypt](#xencrypt)
@@ -407,6 +408,17 @@ If you ignore third argument, `.env` file is taken from `DOTENV_FILE` constant.
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L537-L553)
 
+#### _T
+
+```
+string _T(string $var, string $lang = LANG, string $lang_file = LANG_FILE)
+```
+
+Used to return a value from translation map. 
+Function optionally receives secord argument (`LANG`) and third argument (`LANG_FILE`).
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L565-L573)
+
 #### url_base64_encode
 
 ```
@@ -415,7 +427,7 @@ string url_base64_encode(string $string)
 
 Encode string to URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L562-L565)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L582-L585)
 
 #### url_base64_decode
 
@@ -425,7 +437,7 @@ string url_base64_decode(string $string)
 
 Decode from URL-safe Base64 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L574-L585)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L594-L605)
 
 #### xencrypt
 
@@ -435,7 +447,7 @@ string xencrypt(string $string, string $key)
 
 XOR encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L595-L605)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L615-L625)
 
 #### xdecrypt
 
@@ -445,7 +457,7 @@ string xdecrypt(string $string, string $key)
 
 XOR decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L615-L630)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L635-L650)
 
 #### oencrypt
 
@@ -455,7 +467,7 @@ string oencrypt(string $string, string $key)
 
 Implements OpenSSL encryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L640-L647)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L660-L667)
 
 #### odecrypt
 
@@ -465,7 +477,7 @@ string odecrypt(string $string, string $key)
 
 Implements OpenSSL decryption.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L657-L670)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L677-L690)
 
 #### base32_decode
 
@@ -475,7 +487,7 @@ string base32_decode(string $string)
 
 Decode string from Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L679-L688)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L699-L708)
 
 #### base32_encode
 
@@ -485,7 +497,7 @@ string base32_encode(string $string)
 
 Encode string in Base32 format.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L697-L714)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L717-L734)
 
 #### latinize
 
@@ -502,7 +514,7 @@ $s = latinize('привет мир', true);
 // $s => 'privet mir'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L731-L813)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L751-L833)
 
 #### normalize
 
@@ -522,7 +534,7 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L834-L847)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L854-L867)
 
 #### xpath
 
@@ -552,7 +564,7 @@ Array
 
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L906-L991)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L926-L1011)
 
 #### mb_ucfirst
 
@@ -562,7 +574,7 @@ string mb_ucfirst(string $string)
 
 Upper case of first letter.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1000-L1006)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1020-L1026)
 
 #### sanitize_html
 
@@ -572,7 +584,7 @@ string sanitize_html(string $content)
 
 Satinize HTML output.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1015-L1053)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1035-L1073)
 
 #### readable_to_variable
 
@@ -582,7 +594,7 @@ mixed readable_to_variable(string $input)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1062-L1108)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1082-L1128)
 
 #### to_storage
 
@@ -603,7 +615,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1131-L1157)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1151-L1177)
 
 #### curl
 
@@ -622,7 +634,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1178-L1349)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1198-L1369)
 
 ### Authors
 
