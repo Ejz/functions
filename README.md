@@ -626,8 +626,8 @@ Generator curl(array $urls, array $settings = [])
 All-in-one cURL function with multi threading support.
 
 ```php
-$result = curl([$key = 'http://github.com']);
-$content = iterator_to_array($result, true)[$key]['content'];
+$result = curl(['http://github.com']);
+$content = iterator_to_array($result, true)[0]['content'];
 preg_match('~<title>(.*?)</title>~', $content, $title);
 $title = $title[1];
 // $title => 'The world&#39;s leading software development platform · GitHub'
@@ -635,7 +635,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1332)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1342)
 
 ### Authors
 
