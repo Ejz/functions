@@ -599,7 +599,7 @@ Transforms readable form of string to variable.
 #### to_storage
 
 ```
-string|null to_storage(string $file, array $settings = [])
+string to_storage(string $file, array $settings = [])
 ```
 
 Help function for saving data in storage.
@@ -615,18 +615,19 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1151-L1177)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1151-L1190)
 
 #### curl
 
 ```
-array|string curl(array|string $urls, array $settings = [])
+Generator curl(array $urls, array $settings = [])
 ```
 
 All-in-one cURL function with multi threading support.
 
 ```php
-$content = curl('http://github.com');
+$result = curl([$key = 'http://github.com']);
+$content = iterator_to_array($result, true)[$key]['content'];
 preg_match('~<title>(.*?)</title>~', $content, $title);
 $title = $title[1];
 // $title => 'The world&#39;s leading software development platform · GitHub'
@@ -634,7 +635,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1198-L1369)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1332)
 
 ### Authors
 
