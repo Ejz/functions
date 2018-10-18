@@ -1146,30 +1146,43 @@ function readable_to_variable(string $input)
  * @param string $file
  * @param array  $settings (optional)
  *
- * @return string|null
+ * @return string
  */
-function to_storage(string $file, array $settings = []): ?string {
-    if (!is_file($file)) return null;
+function to_storage(string $file, array $settings = []): string
+{
+    if (!is_file($file)) {
+        return '';
+    }
     $settings = $settings + [
         'dir' => sys_get_temp_dir(),
         'ext' => file_get_ext($file),
         'name' => file_get_name($file),
         'shards' => 0,
     ];
-    if (!is_dir($settings['dir'])) return null;
+    if (!is_dir($settings['dir'])) {
+        return '';
+    }
     $hash = md5_file($file);
     if ($settings['shards'] > 2) $settings['shards'] = 2;
     $settings['dir'] = rtrim($settings['dir'], '/');
-    if ($settings['shards'])
+    if ($settings['shards']) {
         $settings['dir'] .= preg_replace('~^(..)(..).*~', $settings['shards'] > 1 ? '/$1/$2' : '/$1', $hash);
-    exec('mkdir -p ' . escapeshellarg($settings['dir']));
+    }
+    if (!is_dir($settings['dir'])) {
+        mkdir($settings['dir'], 0755, true);
+    }
+    if (!is_dir($settings['dir'])) {
+        return '';
+    }
     $settings['name'] = normalize($settings['name'], '.-_');
-    if (!$settings['name']) $settings['name'] = mt_rand();
+    if (!$settings['name']) {
+        $settings['name'] = mt_rand();
+    }
     $ext = ($settings['ext'] ? ".{$settings['ext']}" : "");
     $target = $settings['dir'] . '/' . $settings['name'] . $ext;
     $i = 0;
-    while (file_exists($target) and (md5_file($target) != $hash)) {
-        $target = preg_replace($i ? '~-\d+(\.?\w+)$~' : '~(\.?\w+)$~', '-' . ($i) . '$1', $target);
+    while (file_exists($target) && md5_file($target) !== $hash) {
+        $target = preg_replace($i ? '~-\d+(\.?\w+)$~' : '~(\.?\w+)$~', '-' . $i . '$1', $target);
         $i++;
     }
     copy($file, $target);
@@ -1180,7 +1193,8 @@ function to_storage(string $file, array $settings = []): ?string {
  * All-in-one cURL function with multi threading support.
  *
  * ```php
- * $content = curl('http://github.com');
+ * $result = curl([$key = 'http://github.com']);
+ * $content = iterator_to_array($result, true)[$key]['content'];
  * preg_match('~<title>(.*?)</title>~', $content, $title);
  * $title = $title[1];
  * // $title => 'The world&#39;s leading software development platform · GitHub'
@@ -1188,94 +1202,63 @@ function to_storage(string $file, array $settings = []): ?string {
  *
  * For more examples, please, refer to [curl.md](docs/curl.md).
  *
- * @todo Reformat
+ * @param array $urls
+ * @param array $settings (optional)
  *
- * @param array|string $urls
- * @param array        $settings (optional)
- *
- * @return array|string
+ * @return Generator
  */
-function curl($urls, array $settings = []) {
-    $_urls = $urls;
-    $return = [];
-    if (is_string($urls)) $urls = [$urls];
-    $urls = array_values(array_filter($urls, 'is_string'));
-    $urls = array_values(array_unique($urls));
-    $settings = $settings + [
-        'modify_content' => null,
-        'retry' => 0,
-        'verbose' => false,
-        'threads' => 3,
-        'sleep' => 5,
-        'delay' => 0,
-        'format' => (is_string($_urls) ? 'simple' : 'array'),
-        'checker' => null,
-    ];
-    if (is_numeric($settings['checker']))
-        $settings['checker'] = [intval($settings['checker'])];
-    if (!is_callable($settings['checker']) and is_array($_ = $settings['checker']))
-        $settings['checker'] = function ($url, $ch) use ($_) {
-            $info = curl_getinfo($ch);
-            $code = intval($info['http_code']);
-            return in_array($code, array_map('intval', $_));
-        };
-    $handleReturn = function (& $return) use ($settings) {
-        $fail = [];
-        foreach (array_keys($return) as $key) {
-            $value = & $return[$key];
-            if (!is_array($value) or !array_key_exists('ch', $value) or !is_resource($value['ch']))
-                continue;
-            $ch = $value['ch'];
+function curl(array $urls, array $settings = []): Generator
+{
+    $settings = $settings + ['threads' => 5];
+    $settings['threads'] = max($settings['threads'], 1);
+    $settings['threads'] = min($settings['threads'], 50);
+    $get_headers = function (string $header): array {
+        $header = trim($header);
+        if ($header === '') {
+            return [];
+        }
+        $headers = [];
+        $lines = explode("\r\n\r\n", $header);
+        for ($index = 0; $index < count($lines) - 1; $index++) {
+            foreach (explode("\r\n", $lines[$index]) as $i => $line) {
+                if (!$i) {
+                    $line = explode(' ', $line);
+                    $headers[$index]['status'] = $line[1];
+                } else {
+                    $line = explode(': ', $line, 2);
+                    if (count($line) != 2) {
+                        continue;
+                    }
+                    [$k, $v] = $line;
+                    $headers[$index][strtolower($k)] = $v;
+                }
+            }
+        }
+        return $headers;
+    };
+    $process_chs = function (array $chs) use ($settings, $get_headers) {
+        foreach ($chs as $ch) {
+            $url = $ch['url'];
+            $ch = $ch['ch'];
             $error = curl_error($ch);
             $errno = curl_errno($ch);
-            if ($error or ($settings['checker'] and !($_ = $settings['checker']($value['url'], $ch)))) {
-                unset($return[$key]);
-                curl_close($ch);
-                $fail[$key] = $value['url'];
-                if ($settings['verbose']) {
-                    echo $value['url'], ' .. ERR!' . ($error ? " ({$error})" : '') . ($_ ? " ({$_})" : '');
-                }
-                continue;
-            }
             $info = curl_getinfo($ch);
             $content = curl_multi_getcontent($ch);
-            $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-            if ($settings['verbose'] and $value['url'] === $info['url'])
-                echo $value['url'], ' .. OK!', "\n";
-            elseif ($settings['verbose'])
-                echo $value['url'], ' .. ', $info['url'], ' .. OK!', "\n";
-            if (intval($headerSize) > 0) {
-                $header = substr($content, 0, $headerSize);
-                $content = substr($content, $headerSize);
-                $headers = array();
-                $_ = explode("\r\n\r\n", $header);
-                for ($index = 0; $index < count($_) - 1; $index++)
-                    foreach (explode("\r\n", $_[$index]) as $i => $line)
-                        if ($i === 0) {
-                            $line = explode(' ', $line);
-                            $headers[$index]['http-code'] = $line[1];
-                        } else {
-                            $line = explode(': ', $line, 2);
-                            if (count($line) != 2) continue;
-                            list($k, $v) = $line;
-                            $headers[$index][strtolower($k)] = $v;
-                        }
-            } else $header = '';
-            $return[$key]['content'] = $content;
-            $return[$key]['header'] = $header;
-            if ($settings['modify_content'] and is_callable($settings['modify_content']))
-                $return[$key]['content'] = $settings['modify_content']($value['url'], $content);
-            $return[$key]['info'] = $info;
-            if (isset($headers)) $return[$key]['headers'] = $headers;
-            unset($value['ch']);
+            $header_size = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             curl_close($ch);
+            $header = '';
+            if ($header_size > 0) {
+                $header = substr($content, 0, $header_size);
+                $content = substr($content, $header_size);
+            }
+            $headers = $get_headers($header);
+            yield $url => compact('content', 'header', 'headers', 'info', 'error', 'errno');
         }
-        return $fail;
     };
-    $getCH = function ($url, $settings) {
+    $get_ch = function ($url, $settings) {
         $ch = curl_init();
         $opts = [];
-        $setopt = function ($arr) use (& $ch, & $opts) {
+        $setopt = function ($arr) use (&$ch, &$opts) {
             $opts = array_replace($opts, $arr);
             curl_setopt_array($ch, $arr);
         };
@@ -1298,72 +1281,52 @@ function curl($urls, array $settings = []) {
             CURLOPT_READFUNCTION,
             CURLOPT_WRITEFUNCTION,
         ];
-        if (defined("CURLOPT_PASSWDFUNCTION"))
+        if (defined("CURLOPT_PASSWDFUNCTION")) {
             $acceptCallable[] = CURLOPT_PASSWDFUNCTION;
-        if (is_string($url) and host($url))
+        }
+        if (is_string($url) && host($url)) {
             $setopt([CURLOPT_URL => $url]);
+        }
         $constants = array_keys(get_defined_constants());
         $constantsStrings = array_values(array_filter($constants, function ($constant) {
             return strpos($constant, 'CURLOPT_') === 0;
         }));
         $constantsValues = array_map('constant', $constantsStrings);
         foreach ($settings as $key => $value) {
-            if (in_array($key, $constantsStrings))
+            if (in_array($key, $constantsStrings)) {
                 $key = constant($key);
-            if (!in_array($key, $constantsValues)) continue;
-            if (is_callable($value) and !in_array($key, $acceptCallable))
+            }
+            if (!in_array($key, $constantsValues)) {
+                continue;
+            }
+            if (is_callable($value) && !in_array($key, $acceptCallable)) {
                 $value = $value($url);
-            $setopt(array($key => $value));
+            }
+            $setopt([$key => $value]);
         }
-        return host($opts[CURLOPT_URL] ?? '') ? $ch : null;
+        return host($opts[CURLOPT_URL] ?? '') ? $ch : '';
     };
-    do {
-        $fails = array();
-        while ($urls) {
-            if ($settings['threads'] == 1 or count($urls) == 1) {
-                $single = curl_init();
-                $multi = null;
-            } else {
-                $single = null;
-                $multi = curl_multi_init();
-            }
-            for ($i = 0; $i < $settings['threads'] and $urls; $i++) {
-                $key = key($urls);
-                $ch = $getCH($urls[$key], $settings);
-                if (is_null($ch)) {
-                    unset($urls[$key]);
-                    $i--;
-                    continue;
-                }
-                $return[$key] = array(
-                    'url' => $urls[$key],
-                    'ch' => $ch
-                );
-                if ($multi)
-                    curl_multi_add_handle($multi, $ch);
-                else $single = $ch;
+    while (count($urls)) {
+        $chs = [];
+        $multi = curl_multi_init();
+        for ($i = 0; $i < $settings['threads'] && count($urls); $i++) {
+            $key = key($urls);
+            $ch = $get_ch($urls[$key], $settings);
+            if (!$ch) {
                 unset($urls[$key]);
+                $i--;
+                continue;
             }
-            if ($multi) {
-                do {
-                    curl_multi_exec($multi, $running);
-                    usleep(300000);
-                } while ($running > 0);
-                curl_multi_close($multi);
-            } else {
-                curl_exec($single);
-            }
-            $fails[] = $handleReturn($return);
-            if ($urls and $settings['delay']) sleep($settings['delay']);
+            $url = $urls[$key];
+            $chs[] = compact('ch', 'url');
+            curl_multi_add_handle($multi, $ch);
+            unset($urls[$key]);
         }
-        foreach ($fails as $fail)
-            foreach ($fail as $k => $v)
-                $urls[$k] = $v;
-    } while ($urls and $settings['retry']-- and sleep($settings['sleep']) === 0);
-    if ($settings['format'] === 'simple') {
-        return implode("\n\n", array_values(array_column($return, 'content')));
-    } elseif ($settings['format'] === 'array') {
-        return array_column($return, 'content', 'url');
+        do {
+            curl_multi_exec($multi, $running);
+            usleep(400000);
+        } while ($running > 0);
+        curl_multi_close($multi);
+        yield from $process_chs($chs);
     }
-    return array_column($return, null, 'url');
 }
