@@ -1193,8 +1193,8 @@ function to_storage(string $file, array $settings = []): string
  * All-in-one cURL function with multi threading support.
  *
  * ```php
- * $result = curl([$key = 'http://github.com']);
- * $content = iterator_to_array($result, true)[$key]['content'];
+ * $result = curl(['http://github.com']);
+ * $content = iterator_to_array($result, true)[0]['content'];
  * preg_match('~<title>(.*?)</title>~', $content, $title);
  * $title = $title[1];
  * // $title => 'The world&#39;s leading software development platform · GitHub'
@@ -1236,26 +1236,36 @@ function curl(array $urls, array $settings = []): Generator
         }
         return $headers;
     };
-    $process_chs = function (array $chs) use ($settings, $get_headers) {
-        foreach ($chs as $ch) {
-            $url = $ch['url'];
+    $process_chs = function (array $chs, array $settings) use ($get_headers) {
+        foreach ($chs as $key => $ch) {
+            $item = $ch['item'];
             $ch = $ch['ch'];
+            $info = curl_getinfo($ch);
             $error = curl_error($ch);
             $errno = curl_errno($ch);
-            $info = curl_getinfo($ch);
+            if (!$info) {
+                continue;
+            }
             $content = curl_multi_getcontent($ch);
-            $header_size = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             curl_close($ch);
+            $header_size = (int) $info['header_size'];
             $header = '';
             if ($header_size > 0) {
                 $header = substr($content, 0, $header_size);
                 $content = substr($content, $header_size);
             }
             $headers = $get_headers($header);
-            yield $url => compact('content', 'header', 'headers', 'info', 'error', 'errno');
+            yield $key => compact([
+                'item',
+                'content',
+                'header',
+                'headers',
+                'error',
+                'errno',
+            ]) + $info;
         }
     };
-    $get_ch = function ($url, $settings) {
+    $get_ch = function ($item, array $settings) {
         $ch = curl_init();
         $opts = [];
         $setopt = function ($arr) use (&$ch, &$opts) {
@@ -1284,8 +1294,8 @@ function curl(array $urls, array $settings = []): Generator
         if (defined("CURLOPT_PASSWDFUNCTION")) {
             $acceptCallable[] = CURLOPT_PASSWDFUNCTION;
         }
-        if (is_string($url) && host($url)) {
-            $setopt([CURLOPT_URL => $url]);
+        if (is_string($item) && host($item)) {
+            $setopt([CURLOPT_URL => $item]);
         }
         $constants = array_keys(get_defined_constants());
         $constantsStrings = array_values(array_filter($constants, function ($constant) {
@@ -1317,16 +1327,16 @@ function curl(array $urls, array $settings = []): Generator
                 $i--;
                 continue;
             }
-            $url = $urls[$key];
-            $chs[] = compact('ch', 'url');
+            $item = $urls[$key];
+            $chs[$key] = compact('ch', 'item');
             curl_multi_add_handle($multi, $ch);
             unset($urls[$key]);
         }
         do {
             curl_multi_exec($multi, $running);
-            usleep(400000);
+            usleep(250000);
         } while ($running > 0);
         curl_multi_close($multi);
-        yield from $process_chs($chs);
+        yield from $process_chs($chs, $settings);
     }
 }

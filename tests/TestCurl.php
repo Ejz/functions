@@ -7,13 +7,13 @@ class TestCurl extends TestCase {
      */
     public function testCurlCommon() {
         $ua = __FUNCTION__;
-        $content = iterator_to_array(curl([$key = 'https://httpbin.org/headers'], [
+        $content = iterator_to_array(curl([10 => 'https://httpbin.org/headers'], [
             CURLOPT_USERAGENT => $ua,
-        ]), true);
-        $json = json_decode(trim($content[$key]['content']), true);
+        ]));
+        $json = json_decode(trim($content[10]['content']), true);
         $this->assertTrue($ua === $json['headers']['User-Agent']);
         //
-        $result = iterator_to_array(curl([$_ = 'https://ejz.io']), true);
-        $this->assertTrue(isset($result[$_]['content']));
+        $result = iterator_to_array(curl(['https://ejz.io']));
+        $this->assertTrue(isset($result[0]['content']));
     }
 }
