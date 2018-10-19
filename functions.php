@@ -1272,9 +1272,6 @@ function curl(array $urls, array $settings = []): Generator
             $opts = array_replace($opts, $arr);
             curl_setopt_array($ch, $arr);
         };
-        if (is_callable($settings['setopts'] ?? '')) {
-            $setopt($settings['setopts']($value, $key));
-        }
         $setopt([
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
@@ -1288,6 +1285,12 @@ function curl(array $urls, array $settings = []): Generator
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_HEADER => true,
         ]);
+        if (is_string($value) && host($value)) {
+            $setopt([CURLOPT_URL => $value]);
+        }
+        if (is_callable($settings['setopts'] ?? '')) {
+            $setopt($settings['setopts']($value, $key));
+        }
         $acceptCallable = [
             CURLOPT_HEADERFUNCTION,
             CURLOPT_PROGRESSFUNCTION,
@@ -1296,9 +1299,6 @@ function curl(array $urls, array $settings = []): Generator
         ];
         if (defined('CURLOPT_PASSWDFUNCTION')) {
             $acceptCallable[] = CURLOPT_PASSWDFUNCTION;
-        }
-        if (is_string($value) && host($value)) {
-            $setopt([CURLOPT_URL => $value]);
         }
         $constants = array_keys(get_defined_constants());
         $constantsStrings = array_values(array_filter($constants, function ($constant) {
