@@ -1272,6 +1272,9 @@ function curl(array $urls, array $settings = []): Generator
             $opts = array_replace($opts, $arr);
             curl_setopt_array($ch, $arr);
         };
+        if (is_callable($settings['setopt'] ?? '')) {
+            $setopt($settings['setopt']($value, $key));
+        }
         $setopt([
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
@@ -1291,7 +1294,7 @@ function curl(array $urls, array $settings = []): Generator
             CURLOPT_READFUNCTION,
             CURLOPT_WRITEFUNCTION,
         ];
-        if (defined("CURLOPT_PASSWDFUNCTION")) {
+        if (defined('CURLOPT_PASSWDFUNCTION')) {
             $acceptCallable[] = CURLOPT_PASSWDFUNCTION;
         }
         if (is_string($value) && host($value)) {
@@ -1310,7 +1313,7 @@ function curl(array $urls, array $settings = []): Generator
                 continue;
             }
             if (!in_array($k, $acceptCallable) && is_callable($v)) {
-                $v = $v($key, $value);
+                $v = $v($value, $key);
             }
             $setopt([$k => $v]);
         }
