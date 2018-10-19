@@ -1238,7 +1238,7 @@ function curl(array $urls, array $settings = []): Generator
     };
     $process_chs = function (array $chs, array $settings) use ($get_headers) {
         foreach ($chs as $key => $ch) {
-            $item = $ch['item'];
+            $value = $ch['value'];
             $ch = $ch['ch'];
             $info = curl_getinfo($ch);
             $error = curl_error($ch);
@@ -1256,7 +1256,7 @@ function curl(array $urls, array $settings = []): Generator
             }
             $headers = $get_headers($header);
             yield $key => compact([
-                'item',
+                'value',
                 'content',
                 'header',
                 'headers',
@@ -1265,7 +1265,7 @@ function curl(array $urls, array $settings = []): Generator
             ]) + $info;
         }
     };
-    $get_ch = function ($item, array $settings) {
+    $get_ch = function ($key, $value, array $settings) {
         $ch = curl_init();
         $opts = [];
         $setopt = function ($arr) use (&$ch, &$opts) {
@@ -1294,25 +1294,25 @@ function curl(array $urls, array $settings = []): Generator
         if (defined("CURLOPT_PASSWDFUNCTION")) {
             $acceptCallable[] = CURLOPT_PASSWDFUNCTION;
         }
-        if (is_string($item) && host($item)) {
-            $setopt([CURLOPT_URL => $item]);
+        if (is_string($value) && host($value)) {
+            $setopt([CURLOPT_URL => $value]);
         }
         $constants = array_keys(get_defined_constants());
         $constantsStrings = array_values(array_filter($constants, function ($constant) {
             return strpos($constant, 'CURLOPT_') === 0;
         }));
         $constantsValues = array_map('constant', $constantsStrings);
-        foreach ($settings as $key => $value) {
-            if (in_array($key, $constantsStrings)) {
-                $key = constant($key);
+        foreach ($settings as $k => $v) {
+            if (in_array($k, $constantsStrings)) {
+                $k = constant($k);
             }
-            if (!in_array($key, $constantsValues)) {
+            if (!in_array($k, $constantsValues)) {
                 continue;
             }
-            if (is_callable($value) && !in_array($key, $acceptCallable)) {
-                $value = $value($url);
+            if (!in_array($k, $acceptCallable) && is_callable($v)) {
+                $v = $v($key, $value);
             }
-            $setopt([$key => $value]);
+            $setopt([$k => $v]);
         }
         return host($opts[CURLOPT_URL] ?? '') ? $ch : '';
     };
@@ -1321,14 +1321,14 @@ function curl(array $urls, array $settings = []): Generator
         $multi = curl_multi_init();
         for ($i = 0; $i < $settings['threads'] && count($urls); $i++) {
             $key = key($urls);
-            $ch = $get_ch($urls[$key], $settings);
+            $ch = $get_ch($key, $urls[$key], $settings);
             if (!$ch) {
                 unset($urls[$key]);
                 $i--;
                 continue;
             }
-            $item = $urls[$key];
-            $chs[$key] = compact('ch', 'item');
+            $value = $urls[$key];
+            $chs[$key] = compact('ch', 'value');
             curl_multi_add_handle($multi, $ch);
             unset($urls[$key]);
         }
