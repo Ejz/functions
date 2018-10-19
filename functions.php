@@ -1272,8 +1272,8 @@ function curl(array $urls, array $settings = []): Generator
             $opts = array_replace($opts, $arr);
             curl_setopt_array($ch, $arr);
         };
-        if (is_callable($settings['setopt'] ?? '')) {
-            $setopt($settings['setopt']($value, $key));
+        if (is_callable($settings['setopts'] ?? '')) {
+            $setopt($settings['setopts']($value, $key));
         }
         $setopt([
             CURLOPT_RETURNTRANSFER => true,
