@@ -1220,7 +1220,7 @@ function curl(array $urls, array $settings = []): Generator
         $header = str_replace("\r\n", "\n", $header);
         $headers = [];
         $lines = explode("\n\n", $header);
-        for ($index = 0; $index < count($lines) - 1; $index++) {
+        for ($index = 0; $index < count($lines); $index++) {
             foreach (explode("\n", $lines[$index]) as $i => $line) {
                 if (!$i) {
                     $line = explode(' ', $line);
