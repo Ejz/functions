@@ -1217,10 +1217,11 @@ function curl(array $urls, array $settings = []): Generator
         if ($header === '') {
             return [];
         }
+        $header = str_replace("\r\n", "\n", $header);
         $headers = [];
-        $lines = explode("\r\n\r\n", $header);
+        $lines = explode("\n\n", $header);
         for ($index = 0; $index < count($lines) - 1; $index++) {
-            foreach (explode("\r\n", $lines[$index]) as $i => $line) {
+            foreach (explode("\n", $lines[$index]) as $i => $line) {
                 if (!$i) {
                     $line = explode(' ', $line);
                     $headers[$index]['status'] = $line[1];
