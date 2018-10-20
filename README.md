@@ -635,7 +635,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1345)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1352)
 
 ### Authors
 
