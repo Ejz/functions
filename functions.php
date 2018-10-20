@@ -1266,13 +1266,22 @@ function curl(array $urls, array $settings = []): Generator
         }
     };
     $get_ch = function ($key, $value, array $settings) {
+        static $constants;
+        static $constantsStrings;
+        static $constantsValues;
+        if (!is_array($constants)) {
+            $constants = array_keys(get_defined_constants());
+        }
+        if (!is_array($constantsStrings)) {
+            $constantsStrings = array_values(array_filter($constants, function ($constant) {
+                return strpos($constant, 'CURLOPT_') === 0;
+            }));
+        }
+        if (!is_array($constantsValues)) {
+            $constantsValues = array_map('constant', $constantsStrings);
+        }
         $ch = curl_init();
-        $opts = [];
-        $setopt = function ($arr) use (&$ch, &$opts) {
-            $opts = array_replace($opts, $arr);
-            curl_setopt_array($ch, $arr);
-        };
-        $setopt([
+        $opts = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_ENCODING => '',
@@ -1284,12 +1293,14 @@ function curl(array $urls, array $settings = []): Generator
             CURLOPT_SSL_VERIFYPEER => 0,
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_HEADER => true,
-        ]);
+        ];
         if (is_string($value) && host($value)) {
-            $setopt([CURLOPT_URL => $value]);
+            $opts[CURLOPT_URL] = $value;
         }
-        if (is_callable($settings['setopts'] ?? '')) {
-            $setopt($settings['setopts']($value, $key));
+        if (is_callable($settings['opts'] ?? '')) {
+            $opts = $settings['opts']($value, $key) + $opts;
+        } elseif (is_assoc($settings['opts'] ?? '')) {
+            $opts = $settings['opts'] + $opts;
         }
         $acceptCallable = [
             CURLOPT_HEADERFUNCTION,
@@ -1300,11 +1311,6 @@ function curl(array $urls, array $settings = []): Generator
         if (defined('CURLOPT_PASSWDFUNCTION')) {
             $acceptCallable[] = CURLOPT_PASSWDFUNCTION;
         }
-        $constants = array_keys(get_defined_constants());
-        $constantsStrings = array_values(array_filter($constants, function ($constant) {
-            return strpos($constant, 'CURLOPT_') === 0;
-        }));
-        $constantsValues = array_map('constant', $constantsStrings);
         foreach ($settings as $k => $v) {
             if (in_array($k, $constantsStrings)) {
                 $k = constant($k);
@@ -1315,8 +1321,9 @@ function curl(array $urls, array $settings = []): Generator
             if (!in_array($k, $acceptCallable) && is_callable($v)) {
                 $v = $v($value, $key);
             }
-            $setopt([$k => $v]);
+            $opts[$k] = $v;
         }
+        curl_setopt_array($ch, $opts);
         return host($opts[CURLOPT_URL] ?? '') ? $ch : '';
     };
     while (count($urls)) {
