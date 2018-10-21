@@ -1211,7 +1211,7 @@ function curl(array $urls, array $settings = []): Generator
 {
     $settings = $settings + ['threads' => 5];
     $settings['threads'] = max($settings['threads'], 1);
-    $settings['threads'] = min($settings['threads'], 50);
+    $settings['threads'] = min($settings['threads'], 100);
     $get_headers = function (string $header): array {
         $header = trim($header);
         if ($header === '') {
