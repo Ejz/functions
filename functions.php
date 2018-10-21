@@ -1224,7 +1224,9 @@ function curl(array $urls, array $settings = []): Generator
             foreach (explode("\n", $lines[$index]) as $i => $line) {
                 if (!$i) {
                     $line = explode(' ', $line);
-                    $headers[$index]['status'] = $line[1];
+                    if ($line[1] ?? '') {
+                        $headers[$index]['status'] = $line[1];
+                    }
                 } else {
                     $line = explode(': ', $line, 2);
                     if (count($line) != 2) {
