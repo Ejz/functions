@@ -1194,8 +1194,8 @@ function to_storage(string $file, array $settings = []): string
  *
  * ```php
  * $result = curl(['http://github.com']);
- * $content = iterator_to_array($result, true)[0]['content'];
- * preg_match('~<title>(.*?)</title>~', $content, $title);
+ * [$github] = iterator_to_array($result, true);
+ * preg_match('~<title>(.*?)</title>~', $github['content'], $title);
  * $title = $title[1];
  * // $title => 'The world&#39;s leading software development platform · GitHub'
  * ```
@@ -1225,7 +1225,7 @@ function curl(array $urls, array $settings = []): Generator
                 if (!$i) {
                     $line = explode(' ', $line);
                     if ($line[1] ?? '') {
-                        $headers[$index]['status'] = $line[1];
+                        $headers[$index]['status'] = (int) $line[1];
                     }
                 } else {
                     $line = explode(': ', $line, 2);
@@ -1242,6 +1242,7 @@ function curl(array $urls, array $settings = []): Generator
     $process_chs = function (array $chs, array $settings) use ($get_headers) {
         foreach ($chs as $key => $ch) {
             $value = $ch['value'];
+            $opts = $ch['opts'];
             $ch = $ch['ch'];
             $info = curl_getinfo($ch);
             $error = curl_error($ch);
@@ -1265,10 +1266,10 @@ function curl(array $urls, array $settings = []): Generator
                 'headers',
                 'error',
                 'errno',
-            ]) + $info;
+            ]) + $info + $opts;
         }
     };
-    $get_ch = function ($key, $value, array $settings) {
+    $get_opts = function ($key, $value, array $settings): array {
         static $constants;
         static $constantsStrings;
         static $constantsValues;
@@ -1283,7 +1284,6 @@ function curl(array $urls, array $settings = []): Generator
         if (!is_array($constantsValues)) {
             $constantsValues = array_map('constant', $constantsStrings);
         }
-        $ch = curl_init();
         $opts = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
@@ -1326,22 +1326,23 @@ function curl(array $urls, array $settings = []): Generator
             }
             $opts[$k] = $v;
         }
-        curl_setopt_array($ch, $opts);
-        return host($opts[CURLOPT_URL] ?? '') ? $ch : '';
+        return host($opts[CURLOPT_URL] ?? '') ? $opts : [];
     };
     while (count($urls)) {
         $chs = [];
         $multi = curl_multi_init();
         for ($i = 0; $i < $settings['threads'] && count($urls); $i++) {
             $key = key($urls);
-            $ch = $get_ch($key, $urls[$key], $settings);
-            if (!$ch) {
+            $opts = $get_opts($key, $urls[$key], $settings);
+            if (!$opts) {
                 unset($urls[$key]);
                 $i--;
                 continue;
             }
+            $ch = curl_init();
+            curl_setopt_array($ch, $opts);
             $value = $urls[$key];
-            $chs[$key] = compact('ch', 'value');
+            $chs[$key] = compact('ch', 'value', 'opts');
             curl_multi_add_handle($multi, $ch);
             unset($urls[$key]);
         }
