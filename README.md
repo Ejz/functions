@@ -627,15 +627,15 @@ All-in-one cURL function with multi threading support.
 
 ```php
 $result = curl(['http://github.com']);
-$content = iterator_to_array($result, true)[0]['content'];
-preg_match('~<title>(.*?)</title>~', $content, $title);
+[$github] = iterator_to_array($result, true);
+preg_match('~<title>(.*?)</title>~', $github['content'], $title);
 $title = $title[1];
 // $title => 'The world&#39;s leading software development platform · GitHub'
 ```
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1355)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1356)
 
 ### Authors
 
