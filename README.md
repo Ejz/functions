@@ -53,6 +53,9 @@ PHP 7.1 or above (with cURL library installed).
 - [readable_to_variable](#readable_to_variable)
 - [to_storage](#to_storage)
 - [curl](#curl)
+- [parse_ssh_config](#parse_ssh_config)
+- [get_domain_info](#get_domain_info)
+- [is_same_suffix_domains](#is_same_suffix_domains)
 
 ----
 
@@ -584,7 +587,7 @@ string sanitize_html(string $content)
 
 Satinize HTML output.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1035-L1073)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1035-L1081)
 
 #### readable_to_variable
 
@@ -594,7 +597,7 @@ mixed readable_to_variable(string $input)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1082-L1128)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1090-L1136)
 
 #### to_storage
 
@@ -615,7 +618,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1151-L1190)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1159-L1198)
 
 #### curl
 
@@ -635,7 +638,43 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1210-L1356)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1218-L1364)
+
+#### parse_ssh_config
+
+```
+array parse_ssh_config(string $content)
+```
+
+Parses ~/.ssh/config content. 
+Returns associative array where Host comes as key.
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1374-L1392)
+
+#### get_domain_info
+
+```
+array get_domain_info(string $domain)
+```
+
+Returns [
+    'suffix' => '*.bd',
+    'suffix_match' => 'mil.bd',
+    'domain' => 'army',
+    'tld' => 'bd',
+] for 'army.mil.bd'
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1406-L1443)
+
+#### is_same_suffix_domains
+
+```
+bool is_same_suffix_domains(string $domain1, string $domain2)
+```
+
+
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1451-L1469)
 
 ### Authors
 
