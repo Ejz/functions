@@ -268,7 +268,7 @@ class TestMisc extends TestCase {
     
     /**
      */
-    public function testReadableToVariable() {
+    public function testMiscReadableToVariable() {
         define($c = md5(microtime(true)), 'bla');
         $this->assertTrue(readable_to_variable('true') === true);
         $this->assertTrue(readable_to_variable($c) === 'bla');
@@ -276,5 +276,23 @@ class TestMisc extends TestCase {
         $this->assertTrue(readable_to_variable('[k=>v]') === array('k' => 'v'));
         $this->assertTrue(readable_to_variable('[v1,v2]') === array('v1', 'v2'));
         $this->assertTrue(readable_to_variable("[v1, {$c}]") === array('v1', 'bla'));
+    }
+
+    /**
+     */
+    public function testMiscSuffixDomains() {
+        $this->assertEquals([
+            'suffix' => '*.bd',
+            'suffix_match' => 'mil.bd',
+            'domain' => 'army',
+            'tld' => 'bd',
+        ], get_domain_info('army.mil.bd'));
+        $this->assertEquals('go.www', get_domain_info('go.www.army.mil.bd')['subdomain']);
+        //
+        $this->assertTrue(is_same_suffix_domains('www.gole', 'www.gole'));
+        $this->assertTrue(is_same_suffix_domains('www.google.com', 'google.com'));
+        $this->assertTrue(is_same_suffix_domains('google.com', 'www.google.com'));
+        $this->assertFalse(is_same_suffix_domains('oogle.com', 'google.com'));
+        $this->assertTrue(is_same_suffix_domains('army.mil.bd', 'www.go.army.mil.bd'));
     }
 }

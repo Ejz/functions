@@ -1042,7 +1042,7 @@ function sanitize_html(string $content): string
         $map[$key] = trim($match['body']);
         return $match['begin'] . $key . $match['end'];
     }, $content);
-    $content = preg_replace('~\s*<!--.*?-->\s*~s', '', $content);
+    $content = preg_replace('~<!--.*?-->~s', '', $content);
     $content = preg_replace('~\s+~s', ' ', $content);
     $reg = '~(?P<b><)(?P<c>/?)(?P<t>\w+)\b(?P<a>[^>]*?)\s*(?P<e>/?>)~';
     $parts = preg_split($reg, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
@@ -1051,16 +1051,24 @@ function sanitize_html(string $content): string
     $ex = [];
     $content = [];
     for ($i = 0, $l = count($parts); $i < $l; $i++) {
-        if ($i == $l - 1) {
+        $is_first = $i == 0;
+        $is_last = $i == $l - 1;
+        if ($is_last) {
             $content[] = $parts[$i][0];
             continue;
         }
         [$s, $b, $c, $t, $a, $e] = $parts[$i];
-        if ($i == 0) {
+        $is_close = !empty($c);
+        $ex_is_close = !empty($ex[0]);
+        $is_inline = isset($inline[$t]);
+        $ex_is_inline = isset($ex[1], $inline[$ex[1]]);
+        if ($is_close) {
             $s = rtrim($s);
-        }
-        if ($s === ' ' && (empty($ex[0]) || !empty($c) || !isset($ex[1], $inline[$t]))) {
-            $s = '';
+            if (!$ex_is_close && ($ex[1] ?? '') === $t) {
+                $s = ltrim($s);
+            }
+        } else {
+            $s = ltrim($s);
         }
         $content[] = $s . $b . $c . $t . $a . $e;
         $ex = [$c, $t];
@@ -1353,4 +1361,109 @@ function curl(array $urls, array $settings = []): Generator
         curl_multi_close($multi);
         yield from $process_chs($chs, $settings);
     }
+}
+
+/**
+ * Parses ~/.ssh/config content. 
+ * Returns associative array where Host comes as key.
+ *
+ * @param string $content
+ *
+ * @return array
+ */
+function parse_ssh_config(string $content): array
+{
+    $hosts = [];
+    $current = '';
+    foreach (explode("\n", $content) as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+        [$key, $value] = preg_split('~\s+~', $line, 2);
+        if (strtolower($key) === 'host') {
+            $current = $value;
+            $hosts[$current] = [];
+        } elseif ($current !== '') {
+            $hosts[$current][$key] = $value;
+        }
+    }
+    return $hosts;
+}
+
+/**
+ * Returns [
+ *     'suffix' => '*.bd',
+ *     'suffix_match' => 'mil.bd',
+ *     'domain' => 'army',
+ *     'tld' => 'bd',
+ * ] for 'army.mil.bd'
+ *
+ * @param string $domain
+ *
+ * @return array
+ */
+function get_domain_info(string $domain): array
+{
+    if (!is_host($domain)) {
+        return [];
+    }
+    $domain = strtolower($domain);
+    $suffix_link = 'https://publicsuffix.org/list/effective_tld_names.dat';
+    $expire = 3600 * 24 * 30; // 30 day cache
+    $file = sys_get_temp_dir() . '/' . __FUNCTION__ . '.tmp';
+    $list = nsplit(is_file($file) ? file_get_contents($file) : '');
+    if (!is_file($file) || filemtime($file) < time() - $expire || !$list) {
+        $list = file_get_contents($suffix_link);
+        $list = nsplit($list);
+        foreach ($list as &$elem) {
+            if ($elem[0] === '#' || $elem[0] === '/') {
+                $elem = '';
+            }
+        }
+        $list = array_filter($list);
+        file_put_contents($file, implode("\n", $list) . "\n");
+    }
+    $list = nsplit(file_get_contents($file));
+    uasort($list, function ($a, $b) {
+        return strlen($a) < strlen($b);
+    });
+    foreach ($list as $suffix) {
+        $regex = str_replace(['.', '*'], ['\\.', '\\w+'], $suffix);
+        if (preg_match($_ = '~^(.*)\.(' . $regex . ')$~', $domain, $match)) {
+            $suffix_match = $match[2];
+            [$tld] = array_reverse(explode('.', $suffix_match));
+            $parts = explode('.', $match[1]);
+            $domain = array_pop($parts);
+            $append = $parts ? ['subdomain' => implode('.', $parts)] : [];
+            return compact('suffix', 'suffix_match', 'domain', 'tld') + $append;
+        }
+    }
+    return [];
+}
+
+/**
+ * @param string $domain1
+ * @param string $domain2
+ *
+ * @return bool
+ */
+function is_same_suffix_domains(string $domain1, string $domain2): bool
+{
+    if ($domain1 === '' || $domain2 === '') {
+        return false;
+    }
+    if (
+        strpos('.' . $domain1, '.' . $domain2) !== false ||
+        strpos('.' . $domain2, '.' . $domain1) !== false
+    ) {
+        return true;
+    }
+    $suffix1 = get_domain_info($domain1);
+    $suffix2 = get_domain_info($domain2);
+    return (
+        $suffix1 && $suffix2 &&
+        $suffix1['domain'] == $suffix2['domain'] &&
+        $suffix1['suffix_match'] == $suffix2['suffix_match']
+    );
 }
