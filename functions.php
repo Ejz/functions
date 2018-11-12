@@ -1467,3 +1467,60 @@ function is_same_suffix_domains(string $domain1, string $domain2): bool
         $suffix1['suffix_match'] == $suffix2['suffix_match']
     );
 }
+
+/**
+ * @param string $html
+ * @param string $url  (optional)
+ *
+ * @return array
+ */
+function extract_links_from_html(string $html, string $url = ''): array
+{
+    $html = trim($html);
+    if (!$html) {
+        return [];
+    }
+    $links = [];
+    $base = xpath($html, '//head/base/@href');
+    $tags = 'self::a or self::img or self::script or self::link or self::form';
+    $names = 'name()="src" or name()="href" or name()="link" or name()="action"';
+    $xpath = "//*[{$tags}][./@*[{$names}]]";
+    $base = $base ? realurl($base[0], $url) : $url;
+    xpath($html, $xpath, function ($tag) use (&$links, $base) {
+        $map = [
+            'a' => 'href',
+            'link' => 'href',
+            'img' => 'src',
+            'script' => 'src',
+            'form' => 'action',
+        ];
+        $is_link = $tag->nodeName == 'link';
+        $is_a = $tag->nodeName == 'a';
+        $is_form = $tag->nodeName == 'form';
+        $value = $tag->getAttribute($map[$tag->nodeName]);
+        if ($value === '') {
+            return;
+        }
+        $value = realurl($value, $base);
+        if ($value === '') {
+            return;
+        }
+        if ($is_a && isset($links[$value])) {
+            return;
+        }
+        $links[$value] = ['tag' => $tag->nodeName];
+        if ($is_link && $rel = strtolower($tag->getAttribute('rel'))) {
+            $links[$value]['rel'] = $rel;
+        }
+        if ($is_link && $type = strtolower($tag->getAttribute('type'))) {
+            $links[$value]['type'] = $type;
+        }
+        if ($is_form && $method = strtolower($tag->getAttribute('method'))) {
+            $links[$value]['method'] = $method;
+        }
+        if ($is_a && $anchor = normalize(latinize($tag->nodeValue), '', true)) {
+            $links[$value]['anchor'] = $anchor;
+        }
+    });
+    return $links;
+}
