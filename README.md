@@ -56,6 +56,7 @@ PHP 7.1 or above (with cURL library installed).
 - [parse_ssh_config](#parse_ssh_config)
 - [get_domain_info](#get_domain_info)
 - [is_same_suffix_domains](#is_same_suffix_domains)
+- [extract_links_from_html](#extract_links_from_html)
 
 ----
 
@@ -675,6 +676,16 @@ bool is_same_suffix_domains(string $domain1, string $domain2)
 
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1451-L1469)
+
+#### extract_links_from_html
+
+```
+array extract_links_from_html(string $html, string $url = '')
+```
+
+
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1477-L1526)
 
 ### Authors
 
