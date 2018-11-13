@@ -57,6 +57,7 @@ PHP 7.1 or above (with cURL library installed).
 - [get_domain_info](#get_domain_info)
 - [is_same_suffix_domains](#is_same_suffix_domains)
 - [extract_links_from_html](#extract_links_from_html)
+- [crawler](#crawler)
 
 ----
 
@@ -673,9 +674,9 @@ Returns [
 bool is_same_suffix_domains(string $domain1, string $domain2)
 ```
 
+Returns true, if domains have same suffix.
 
-
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1451-L1469)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1453-L1471)
 
 #### extract_links_from_html
 
@@ -683,9 +684,19 @@ bool is_same_suffix_domains(string $domain1, string $domain2)
 array extract_links_from_html(string $html, string $url = '')
 ```
 
+Extract links (anchors + resource) from HTML.
 
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1481-L1530)
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1477-L1526)
+#### crawler
+
+```
+array crawler(array $urls, array $settings = [])
+```
+
+Crawl recursively a domain.
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1540-L1657)
 
 ### Authors
 
