@@ -696,7 +696,7 @@ array crawler(array $urls, array $settings = [])
 
 Crawl recursively a domain.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1540-L1657)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1540-L1666)
 
 ### Authors
 
