@@ -505,8 +505,8 @@ function realurl(string $url, string $relative = ''): string
         }
         do {
             $old = $url;
-            $url = preg_replace('~/+~', '/', $url);
-            $url = preg_replace('~/\./~', '/', $url);
+            $url = preg_replace('~/+|/\./~', '/', $url);
+            $url = preg_replace('~#.*$~', '', $url);
             $url = preg_replace('~(^|/)[^/]+/\.\./~', '$1', $url);
             $url = preg_replace('~^/\.\./~', '/', $url);
         } while ($old != $url);
@@ -1443,6 +1443,8 @@ function get_domain_info(string $domain): array
 }
 
 /**
+ * Returns true, if domains have same suffix.
+ *
  * @param string $domain1
  * @param string $domain2
  *
@@ -1469,6 +1471,8 @@ function is_same_suffix_domains(string $domain1, string $domain2): bool
 }
 
 /**
+ * Extract links (anchors + resource) from HTML.
+ *
  * @param string $html
  * @param string $url  (optional)
  *
@@ -1523,4 +1527,131 @@ function extract_links_from_html(string $html, string $url = ''): array
         }
     });
     return $links;
+}
+
+/**
+ * Crawl recursively a domain.
+ *
+ * @param array $urls
+ * @param array $settings (optional)
+ *
+ * @return array
+ */
+function crawler(array $urls, array $settings = []): array
+{
+    $follow_exts = [
+        'html', 'htm', 'shtml', 'xhtml',
+        'php', 'asp', 'aspx', 'jsp',
+        'pl', 'cgi', 'cfml', 'md',
+    ];
+    $possible_hosts = array_values(array_filter(array_map('host', $urls)));
+    $settings = $settings + [
+        'threads' => 5,
+        'dir' => sys_get_temp_dir(),
+        'level' => 10,
+        'filter_links' => function ($link, $meta) use ($follow_exts, $possible_hosts) {
+            if (($meta['tag'] ?? '') != 'a') {
+                return false;
+            }
+            if (!in_array(host($link), $possible_hosts)) {
+                return false;
+            }
+            $ext = file_get_ext($link);
+            return $ext === '' || in_array($ext, $follow_exts);
+        },
+        'acceptable_http_codes' => [200, 301, 302],
+        'echo' => defined('STDIN'),
+        'already' => [],
+    ];
+    $settings['level'] = max(0, $settings['level']);
+    $settings['level'] = min($settings['level'], 100);
+    if (!$settings['level']) {
+        return [];
+    }
+    if (!is_dir($settings['dir']) || !is_writable($settings['dir'])) {
+        return [];
+    }
+    $echo = function ($url, $msg) use ($settings) {
+        if ($settings['echo']) {
+            echo sprintf('[%s] [%d] %s: %s', now(), $settings['level'], $url, $msg), "\n";
+        }
+    };
+    $get_path = function ($url, $mkdir) use ($settings) {
+        $host = host($url);
+        $path = parse_url($url, PHP_URL_PATH);
+        $path = normalize(latinize($path, true));
+        if (!$path) {
+            $path = 'index.html';
+        }
+        $path = str_replace(' ', '-', $path);
+        $md5 = substr(md5($url), 0, 6);
+        $path = "{$settings['dir']}/{$host}/{$path}-{$md5}";
+        if ($mkdir) {
+            @ mkdir($path, 0777, true);
+        }
+        return $path;
+    };
+    $return = [];
+    $already = [];
+    $collect = [];
+    clearstatcache();
+    foreach ($urls as $url) {
+        if (isset($settings['already'][$url])) {
+            continue;
+        }
+        $settings['already'][$url] = true;
+        if (file_exists($get_path($url, false))) {
+            $already[] = $url;
+        } else {
+            $collect[] = $url;
+        }
+    }
+    $urls = $collect;
+    $collect = [];
+    $return['already'] = count($already);
+    $iterator = new AppendIterator();
+    $iterator->append(new ArrayIterator($already));
+    $iterator->append(curl($urls, $settings));
+    foreach ($iterator->valid() ? $iterator : [] as $result) {
+        $is_already = !isset($result[CURLOPT_URL]);
+        if (!$is_already) {
+            if ($result['errno']) {
+                @ $return['error']++;
+                $echo($result['value'], $result['error']);
+                continue;
+            }
+            $echo($result['value'], $result['http_code']);
+            if (!in_array($result['http_code'], $settings['acceptable_http_codes'])) {
+                @ $return['invalid_code']++;
+                continue;
+            }
+            @ $return['ok']++;
+            $links = extract_links_from_html($result['content'], $result['url']);
+            $path1 = $get_path($result['url'], true);
+            file_put_contents($path1 . '/content.html', $result['content']);
+            file_put_contents($path1 . '/header.txt', $result['header']);
+            $json = json_encode($links, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            file_put_contents($path1 . '/links.json', $json);
+            $path2 = $get_path($result['value'], false);
+            if ($path1 != $path2) {
+                $echo($result['value'], '.. Symlink -> ' . $result['url']);
+                symlink($path1, $path2);
+            }
+        }
+        $url = $is_already ? $result : $result['value'];
+        $path = $get_path($url, false);
+        @ $links = json_decode(file_get_contents($path . '/links.json'), true);
+        foreach ($links ?: [] as $link => $meta) {
+            if ($settings['filter_links']($link, $meta)) {
+                $collect[] = $link;
+            }
+        }
+        $echo($url, '.. ' . count($collect) . ' links');
+    }
+    $settings['level']--;
+    $_ = crawler($collect, $settings);
+    foreach (array_keys($return + $_) as $key) {
+        $return[$key] = ($return[$key] ?? 0) + ($_[$key] ?? 0);
+    }
+    return array_filter($return);
 }

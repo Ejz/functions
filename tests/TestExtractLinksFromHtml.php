@@ -107,4 +107,22 @@ class TestExtractLinksFromHtml extends TestCase {
             ],
         ]);
     }
+
+    public function testExtractLinksFromHtmlHash() {
+        $html = '
+            <html>
+                <body>
+                    <a href="#a">Anchor</a>
+                    <a href="anchor.html#hash">Anchor</a>
+                </body>
+            </html>
+        ';
+        $links = extract_links_from_html($html, 'http://site.com/relative/url.html');
+        $this->assertEquals($links, [
+            'http://site.com/relative/anchor.html' => [
+                'tag' => 'a',
+                'anchor' => 'anchor',
+            ],
+        ]);
+    }
 }
