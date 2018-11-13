@@ -1601,16 +1601,16 @@ function crawler(array $urls, array $settings = []): array
         }
         $settings['already'][$url] = true;
         if (file_exists($get_path($url, false))) {
-            $already[] = $url;
+            $already[$url] = true;
         } else {
-            $collect[] = $url;
+            $collect[$url] = true;
         }
     }
-    $urls = $collect;
+    $urls = array_keys($collect);
     $collect = [];
     $return['already'] = count($already);
     $iterator = new AppendIterator();
-    $iterator->append(new ArrayIterator($already));
+    $iterator->append(new ArrayIterator(array_keys($already)));
     $iterator->append(curl($urls, $settings));
     foreach ($iterator->valid() ? $iterator : [] as $result) {
         $is_already = !isset($result[CURLOPT_URL]);
@@ -1641,17 +1641,26 @@ function crawler(array $urls, array $settings = []): array
         $url = $is_already ? $result : $result['value'];
         $path = $get_path($url, false);
         @ $links = json_decode(file_get_contents($path . '/links.json'), true);
+        $old_count = count($collect);
         foreach ($links ?: [] as $link => $meta) {
-            if ($settings['filter_links']($link, $meta)) {
-                $collect[] = $link;
+            if (isset($settings['already'][$link])) {
+                continue;
             }
+            if (isset($collect[$link])) {
+                continue;
+            }
+            if (!$settings['filter_links']($link, $meta)) {
+                continue;
+            }
+            $collect[$link] = true;
         }
-        $echo($url, '.. ' . count($collect) . ' links');
+        $new_count = count($collect);
+        $echo($url, sprintf('.. links %s / %s', $new_count - $old_count, $new_count));
     }
     $settings['level']--;
-    $_ = crawler($collect, $settings);
-    foreach (array_keys($return + $_) as $key) {
-        $return[$key] = ($return[$key] ?? 0) + ($_[$key] ?? 0);
+    $crawled = crawler(array_keys($collect), $settings);
+    foreach (array_keys($return + $crawled) as $key) {
+        $return[$key] = ($return[$key] ?? 0) + ($crawled[$key] ?? 0);
     }
     return array_filter($return);
 }
