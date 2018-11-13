@@ -505,7 +505,7 @@ function realurl(string $url, string $relative = ''): string
         }
         do {
             $old = $url;
-            $url = preg_replace('~/+|/\./~', '/', $url);
+            $url = preg_replace('~/{2,}|/\./~', '/', $url);
             $url = preg_replace('~#.*$~', '', $url);
             $url = preg_replace('~(^|/)[^/]+/\.\./~', '$1', $url);
             $url = preg_replace('~^/\.\./~', '/', $url);
