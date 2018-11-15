@@ -589,7 +589,7 @@ string sanitize_html(string $content)
 
 Satinize HTML output.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1035-L1081)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1035-L1084)
 
 #### readable_to_variable
 
@@ -599,7 +599,7 @@ mixed readable_to_variable(string $input)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1090-L1136)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1093-L1139)
 
 #### to_storage
 
@@ -620,7 +620,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1159-L1198)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1162-L1201)
 
 #### curl
 
@@ -640,7 +640,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1218-L1364)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1221-L1367)
 
 #### parse_ssh_config
 
@@ -651,7 +651,7 @@ array parse_ssh_config(string $content)
 Parses ~/.ssh/config content. 
 Returns associative array where Host comes as key.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1374-L1392)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1377-L1395)
 
 #### get_domain_info
 
@@ -666,7 +666,7 @@ Returns [
     'tld' => 'bd',
 ] for 'army.mil.bd'
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1406-L1443)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1409-L1446)
 
 #### is_same_suffix_domains
 
@@ -676,7 +676,7 @@ bool is_same_suffix_domains(string $domain1, string $domain2)
 
 Returns true, if domains have same suffix.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1453-L1471)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1456-L1474)
 
 #### extract_links_from_html
 
@@ -686,7 +686,7 @@ array extract_links_from_html(string $html, string $url = '')
 
 Extract links (anchors + resource) from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1481-L1530)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1484-L1533)
 
 #### crawler
 
@@ -696,7 +696,7 @@ array crawler(array $urls, array $settings = [])
 
 Crawl recursively a domain.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1540-L1666)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1543-L1669)
 
 ### Authors
 
