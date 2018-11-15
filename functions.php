@@ -1070,7 +1070,7 @@ function sanitize_html(string $content): string
             if (!$ex_is_close && ($ex[1] ?? '') === $t) {
                 $s = ltrim($s);
             }
-        } else {
+        } elseif (!$ex_is_inline) {
             $s = ltrim($s);
         }
         $content[] = $s . $b . $c . $t . $a . $e;
