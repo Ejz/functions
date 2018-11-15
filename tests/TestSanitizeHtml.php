@@ -7,7 +7,10 @@ class TestSanitizeHtml extends TestCase {
      */
     public function testSanitizeHtmlCommon() {
         $html = " foo <hr> bar ";
-        $this->assertEquals(trim($html), sanitize_html($html));
+        $this->assertEquals("foo<hr>bar", sanitize_html($html));
+        //
+        $html = "<p>text <br> – text text <br> – text</p>";
+        $this->assertEquals("<p>text<br>– text text<br>– text</p>", sanitize_html($html));
         //
         $html = "<script>\n1\n2\n</script> <title> <a> text </a> </title>";
         $this->assertEquals(
@@ -29,5 +32,11 @@ class TestSanitizeHtml extends TestCase {
         //
         $html = "<html><body><p>text <a>link</a> text <a>link</a>. </p></body></html>";
         $this->assertEquals("<html><body><p>text <a>link</a> text <a>link</a>.</p></body></html>", sanitize_html($html));
+        //
+        $html = " <span>1 </span> asd";
+        $this->assertEquals("<span>1</span> asd", sanitize_html($html));
+        //
+        $html = "<div>1</div> asd";
+        $this->assertEquals("<div>1</div>asd", sanitize_html($html));
     }
 }

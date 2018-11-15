@@ -1047,33 +1047,51 @@ function sanitize_html(string $content): string
     $reg = '~(?P<b><)(?P<c>/?)(?P<t>\w+)\b(?P<a>[^>]*?)\s*(?P<e>/?>)~';
     $parts = preg_split($reg, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
     $parts = array_chunk($parts, 6);
-    $inline = array_flip(['a', 'span', 'b', 'strong', 'i', 'em', 'code']);
+    $inline = array_flip([
+        'a', 'span', 'b', 'strong', 'i', 'em', 'code', 's',
+        'img', 'small', 'big', 'sub', 'sup',
+        'ins', 'del', 'kbd',
+    ]);
+    $sc = array_flip(['hr', 'br']);
     $ex = [];
     $content = [];
     for ($i = 0, $l = count($parts); $i < $l; $i++) {
-        $is_first = $i == 0;
-        $is_last = $i == $l - 1;
-        if ($is_last) {
-            $content[] = $parts[$i][0];
-            continue;
-        }
-        [$s, $b, $c, $t, $a, $e] = $parts[$i];
-        if ($is_first && $t === 'html') {
-            $s = rtrim($s);
-        }
-        $is_close = !empty($c);
-        $ex_is_close = !empty($ex[0]);
-        $is_inline = isset($inline[$t]);
-        $ex_is_inline = isset($ex[1], $inline[$ex[1]]);
-        if ($is_close) {
-            $s = rtrim($s);
-            if (!$ex_is_close && ($ex[1] ?? '') === $t) {
-                $s = ltrim($s);
+        if ($i == $l - 1) {
+            $s = $parts[$i][0];
+            if ($s === '') {
+                continue;
             }
-        } elseif (!$ex_is_inline) {
+            [$b, $c, $t, $a, $e] = ['', '/', '', '', ''];
+        } else {
+            [$s, $b, $c, $t, $a, $e] = $parts[$i];
+        }
+        $is_inline = isset($inline[$t]);
+        $is_sc = isset($sc[$t]);
+        $is_block = !$is_inline && !$is_sc;
+        $is_close = !empty($c);
+        $is_ex_inline = isset($ex[1], $inline[$ex[1]]);
+        $is_ex_sc = isset($ex[1], $sc[$ex[1]]);
+        $is_ex_block = isset($ex[1]) && !$is_ex_inline && !$is_ex_sc;
+        $is_ex_close = isset($ex[1]) && $ex[0];
+        if ($is_ex_inline && !$is_ex_close) {
             $s = ltrim($s);
         }
-        $content[] = $s . $b . $c . $t . $a . $e;
+        if ($is_inline && $is_close) {
+            $s = rtrim($s);
+        }
+        if ($is_sc) {
+            $s = rtrim($s);
+        }
+        if ($is_ex_sc) {
+            $s = ltrim($s);
+        }
+        if ($is_block) {
+            $s = rtrim($s);
+        }
+        if ($is_ex_block) {
+            $s = ltrim($s);
+        }
+        $content[] = $s . $b . ($t === '' ? '' : $c) . $t . $a . $e;
         $ex = [$c, $t];
     }
     $content = implode('', $content);
