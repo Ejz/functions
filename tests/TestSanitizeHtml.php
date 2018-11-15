@@ -23,5 +23,8 @@ class TestSanitizeHtml extends TestCase {
         //
         $html = "<title> hello <a href='' > 1 </a> </title>";
         $this->assertEquals("<title>hello <a href=''>1</a></title>", sanitize_html($html));
+        //
+        $html = "<!DOCTYPE html> <html> <head></head> <body></body> </html>";
+        $this->assertEquals("<!DOCTYPE html><html><head></head><body></body></html>", sanitize_html($html));
     }
 }

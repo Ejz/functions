@@ -1058,6 +1058,9 @@ function sanitize_html(string $content): string
             continue;
         }
         [$s, $b, $c, $t, $a, $e] = $parts[$i];
+        if ($is_first && $t === 'html') {
+            $s = rtrim($s);
+        }
         $is_close = !empty($c);
         $ex_is_close = !empty($ex[0]);
         $is_inline = isset($inline[$t]);
