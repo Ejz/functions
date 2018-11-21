@@ -282,6 +282,53 @@ class TestMisc extends TestCase {
      */
     public function testMiscSuffixDomains() {
         $this->assertEquals([
+            'suffix' => 'com',
+            'suffix_match' => 'com',
+            'domain' => 'site',
+            'tld' => 'com',
+        ], get_domain_info('site.com'));
+        //
+        $this->assertEquals([
+            'suffix' => 'com',
+            'suffix_match' => 'com',
+            'domain' => 'site',
+            'tld' => 'com',
+            'subdomain' => '1.www',
+        ], get_domain_info('1.www.site.com'));
+        //
+        $this->assertEquals([], get_domain_info('go.ci'));
+        //
+        $this->assertEquals([
+            'suffix' => 'go.ci',
+            'suffix_match' => 'go.ci',
+            'domain' => 'www',
+            'tld' => 'ci',
+        ], get_domain_info('www.go.ci'));
+        //
+        $this->assertEquals([
+            'suffix' => 'ck',
+            'suffix_match' => 'ck',
+            'domain' => 'www',
+            'tld' => 'ck',
+        ], get_domain_info('www.ck'));
+        //
+        $this->assertEquals([
+            'suffix' => 'ck',
+            'suffix_match' => 'ck',
+            'domain' => 'www',
+            'tld' => 'ck',
+            'subdomain' => '1.2',
+        ], get_domain_info('1.2.www.ck'));
+        //
+        $this->assertEquals([], get_domain_info('www1.ck'));
+        $this->assertEquals([
+            'suffix' => '*.ck',
+            'suffix_match' => 'www1.ck',
+            'domain' => 'site',
+            'tld' => 'ck',
+        ], get_domain_info('site.www1.ck'));
+        //
+        $this->assertEquals([
             'suffix' => '*.bd',
             'suffix_match' => 'mil.bd',
             'domain' => 'army',

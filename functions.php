@@ -1426,38 +1426,78 @@ function parse_ssh_config(string $content): array
  */
 function get_domain_info(string $domain): array
 {
+    static $list_0; // direct
+    static $list_1; // wildcard
+    static $list_2; // exclusions
     if (!is_host($domain)) {
         return [];
     }
     $domain = strtolower($domain);
-    $suffix_link = 'https://publicsuffix.org/list/effective_tld_names.dat';
-    $expire = 3600 * 24 * 30; // 30 day cache
-    $file = sys_get_temp_dir() . '/' . __FUNCTION__ . '.tmp';
-    $list = nsplit(is_file($file) ? file_get_contents($file) : '');
-    if (!is_file($file) || filemtime($file) < time() - $expire || !$list) {
-        $list = file_get_contents($suffix_link);
-        $list = nsplit($list);
-        foreach ($list as &$elem) {
-            if ($elem[0] === '#' || $elem[0] === '/') {
-                $elem = '';
+    if (!$list_0) {
+        $suffix_link = 'https://publicsuffix.org/list/effective_tld_names.dat';
+        $expire = 3600 * 24 * 30; // 30 day cache
+        $file = sys_get_temp_dir() . '/' . __FUNCTION__ . '.tmp';
+        $list = nsplit(is_file($file) ? file_get_contents($file) : '');
+        if (!is_file($file) || filemtime($file) < time() - $expire || !$list) {
+            $list = file_get_contents($suffix_link);
+            $list = nsplit($list);
+            foreach ($list as &$elem) {
+                if ($elem[0] === '#' || $elem[0] === '/') {
+                    $elem = '';
+                }
+            }
+            $list = array_filter($list);
+            file_put_contents($file, implode("\n", $list) . "\n");
+            $list = nsplit(file_get_contents($file));
+        }
+        foreach ($list as $elem) {
+            $parts = explode('.', $elem);
+            if ($parts[0] === '*') {
+                $list_1[implode('.', array_slice($parts, 1))] = true;
+            } elseif ($parts[0][0] === '!') {
+                $list_2[substr($elem, 1)] = true;
+            } else {
+                $list_0[$elem] = true;
             }
         }
-        $list = array_filter($list);
-        file_put_contents($file, implode("\n", $list) . "\n");
     }
-    $list = nsplit(file_get_contents($file));
-    uasort($list, function ($a, $b) {
-        return strlen($a) < strlen($b);
-    });
-    foreach ($list as $suffix) {
-        $regex = str_replace(['.', '*'], ['\\.', '\\w+'], $suffix);
-        if (preg_match($_ = '~^(.*)\.(' . $regex . ')$~', $domain, $match)) {
-            $suffix_match = $match[2];
+    $parts = explode('.', $domain);
+    $check = [];
+    for ($i = 0; $i < count($parts); $i++) {
+        $suffix = implode('.', array_slice($parts, $i));
+        if (isset($list_0[$suffix])) {
+            $suffix_match = $suffix;
             [$tld] = array_reverse(explode('.', $suffix_match));
-            $parts = explode('.', $match[1]);
-            $domain = array_pop($parts);
-            $append = $parts ? ['subdomain' => implode('.', $parts)] : [];
-            return compact('suffix', 'suffix_match', 'domain', 'tld') + $append;
+            $domain = $parts[$i - 1] ?? '';
+            if ($domain === '') {
+                return [];
+            }
+            $subdomain = $i > 1 ? ['subdomain' => implode('.', array_slice($parts, 0, $i - 1))] : [];
+            return compact('suffix', 'suffix_match', 'domain', 'tld') + $subdomain;
+        }
+        $suffix_m = implode('.', array_slice($parts, $i + 1));
+        if (isset($list_2[$suffix])) {
+            $suffix = $suffix_m;
+            $suffix_match = $suffix;
+            [$tld] = array_reverse(explode('.', $suffix_match));
+            $domain = $parts[$i] ?? '';
+            if ($domain === '') {
+                return [];
+            }
+            $subdomain = $i > 0 ? ['subdomain' => implode('.', array_slice($parts, 0, $i))] : [];
+            return compact('suffix', 'suffix_match', 'domain', 'tld') + $subdomain;
+        }
+        $suffix = $suffix_m;
+        if (isset($list_1[$suffix])) {
+            $suffix_match = $parts[$i] . '.' . $suffix;
+            $suffix = '*.' . $suffix;
+            [$tld] = array_reverse(explode('.', $suffix_match));
+            $domain = $parts[$i - 1] ?? '';
+            if ($domain === '') {
+                return [];
+            }
+            $subdomain = $i > 1 ? ['subdomain' => implode('.', array_slice($parts, 0, $i - 1))] : [];
+            return compact('suffix', 'suffix_match', 'domain', 'tld') + $subdomain;
         }
     }
     return [];
