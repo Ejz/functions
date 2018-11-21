@@ -666,7 +666,7 @@ Returns [
     'tld' => 'bd',
 ] for 'army.mil.bd'
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1427-L1464)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1427-L1504)
 
 #### is_same_suffix_domains
 
@@ -676,7 +676,7 @@ bool is_same_suffix_domains(string $domain1, string $domain2)
 
 Returns true, if domains have same suffix.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1474-L1492)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1514-L1532)
 
 #### extract_links_from_html
 
@@ -686,7 +686,7 @@ array extract_links_from_html(string $html, string $url = '')
 
 Extract links (anchors + resource) from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1502-L1551)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1542-L1591)
 
 #### crawler
 
@@ -696,7 +696,7 @@ array crawler(array $urls, array $settings = [])
 
 Crawl recursively a domain.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1561-L1687)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1601-L1727)
 
 ### Authors
 
