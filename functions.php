@@ -1725,3 +1725,116 @@ function crawler(array $urls, array $settings = []): array
     }
     return array_filter($return);
 }
+
+/**
+ * @todo
+ *
+ * 1-threaded implementation of BLAST algorithm. 
+ * Supports multiple strings.
+ *
+ * @param array $strings
+ * @param int   $m
+ *
+ * @return array
+ */
+function quick_blast(array $strings, int $m): array
+{
+    $c = count($strings);
+    if ($c < 2) {
+        return [];
+    }
+    $strings = array_values($strings);
+    if ($c !== 2) {
+        $prev = null;
+        for ($i = 0; $i < $c - 1; $i++) {
+            $one = $strings[$i];
+            $two = $strings[$i + 1];
+            $next = quick_blast([$one, $two], $m, $tokenizer);
+            if (!$next) {
+                return [];
+            }
+            $prev = $prev === null ? $next : $merge($prev, $next);
+            if (!$prev) {
+                return [];
+            }
+        }
+        return $prev;
+    } else {
+        [$s1, $s2] = $strings;
+    }
+    $l1 = strlen($s1);
+    $l2 = strlen($s2);
+    if ($l1 < $m || $l2 < $m || $m < 1) {
+        return [];
+    }
+    $split_s1 = [];
+    for ($i = 0; $i <= $l1 - $m; $i++) {
+        $split_s1[] = substr($s1, $i, $m);
+    }
+    $projection = [];
+    foreach ($split_s1 as $s) {
+        $positions = [];
+        $pos = 0;
+        $len = strlen($s);
+        while (($pos = strpos($s2, $s, $pos)) !== false) {
+            $positions[$pos] = true;
+            $pos = $pos + $len;
+        }
+        $projection[] = $positions;
+    }
+    $found = [];
+    for ($i = 0, $count = count($projection); $i < $count; $i++) {
+        foreach ($projection[$i] as $coord => $_) {
+            $add = [$m, $i, $coord];
+            for ($j = $i + 1, $k = 1; $j < $count; $j++, $k++) {
+                if (isset($projection[$j][$coord + $k])) {
+                    $add[0]++;
+                    unset($projection[$j][$coord + $k]);
+                } else {
+                    break;
+                }
+            }
+            $found[$add[0]][] = $add;
+        }
+    }
+    krsort($found, SORT_NUMERIC);
+    $found = array_merge(...$found);
+    return $found;
+}
+
+/**
+ * @todo
+ *
+ * Easy way to highlight BLAST results.
+ *
+ * @param string $string
+ * @param array  $results
+ * @param int    $context    (optional)
+ * @param array  $highlights (optional)
+ *
+ * @return string
+ */
+function highlight_quick_blast_results(
+    string $string,
+    array $results,
+    int $context = 16,
+    array $highlights = [['<em>', '</em>']]
+): string
+{
+    $get_int = function ($begin, $end) {
+        static $intervals = [];
+        $ret = 0;
+        foreach ($intervals as $interval) {
+            if ($begin >= $interval[0] && $end <= $interval[1]) {
+                return -1;
+            }
+            $is_ok = $end < $interval[0] || $begin > $interval[1];
+            $ret += $is_ok ? 0 : 1;
+        }
+        $intervals[] = [$begin, $end];
+        return $ret;
+    };
+    for ($i = 0, $count = count($results); $i < $count; $i++) {
+        [$len, $s1i, $s2i] = $results[$i];
+    }
+}
