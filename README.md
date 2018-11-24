@@ -58,6 +58,8 @@ PHP 7.1 or above (with cURL library installed).
 - [is_same_suffix_domains](#is_same_suffix_domains)
 - [extract_links_from_html](#extract_links_from_html)
 - [crawler](#crawler)
+- [quick_blast](#quick_blast)
+- [highlight_quick_blast_results](#highlight_quick_blast_results)
 
 ----
 
@@ -697,6 +699,26 @@ array crawler(array $urls, array $settings = [])
 Crawl recursively a domain.
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1601-L1727)
+
+#### quick_blast
+
+```
+array quick_blast(array $strings, int $m)
+```
+
+
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1740-L1803)
+
+#### highlight_quick_blast_results
+
+```
+string highlight_quick_blast_results(string $string, array $results, int $context = , array $highlights = )
+```
+
+
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1817-L1840)
 
 ### Authors
 
