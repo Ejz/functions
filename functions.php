@@ -1727,8 +1727,6 @@ function crawler(array $urls, array $settings = []): array
 }
 
 /**
- * @todo
- *
  * 1-threaded implementation of BLAST algorithm. 
  * Supports multiple strings.
  *
@@ -1743,17 +1741,54 @@ function quick_blast(array $strings, int $m): array
     if ($c < 2) {
         return [];
     }
+    $merge = function ($prev, $current) {
+        $merged = [];
+        foreach ($prev as $p) {
+            $p_len = $p[0];
+            $p_s2i = $p[count($p) - 1];
+            foreach ($current as $c) {
+                [$c_len, $c_s2i, $c_s3i] = $c;
+                if ($p_s2i == $c_s2i) {
+                    $add = $p;
+                    $add[] = $c_s3i;
+                    $add[0] = min($p_len, $c_len);
+                    $merged[] = $add;
+                    continue;
+                }
+                $diff = $c_s2i - $p_s2i;
+                if ($diff > 0 && $p_len > $diff) {
+                    $add = $p;
+                    $add[0] -= $diff;
+                    for ($i = 1, $c = count($add); $i < $c; $i++) {
+                        $add[$i] += $diff;
+                    }
+                    $add[] = $c_s3i;
+                    $add[0] = min($add[0], $c_len);
+                    $merged[] = $add;
+                    continue;
+                }
+                if ($diff < 0 && $c_len > -$diff) {
+                    $add = $p;
+                    $add[] = $c_s3i + (-$diff);
+                    $add[0] = min($p_len, $c_len + $diff);
+                    $merged[] = $add;
+                    continue;
+                }
+            }
+        }
+        return $merged;
+    };
     $strings = array_values($strings);
     if ($c !== 2) {
         $prev = null;
         for ($i = 0; $i < $c - 1; $i++) {
             $one = $strings[$i];
             $two = $strings[$i + 1];
-            $next = quick_blast([$one, $two], $m, $tokenizer);
-            if (!$next) {
+            $current = quick_blast([$one, $two], $m);
+            if (!$current) {
                 return [];
             }
-            $prev = $prev === null ? $next : $merge($prev, $next);
+            $prev = $prev === null ? $current : $merge($prev, $current);
             if (!$prev) {
                 return [];
             }
@@ -1816,6 +1851,7 @@ function quick_blast(array $strings, int $m): array
  */
 function highlight_quick_blast_results(
     string $string,
+    int $index,
     array $results,
     int $context = 16,
     array $highlights = [['<em>', '</em>']]
@@ -1834,7 +1870,29 @@ function highlight_quick_blast_results(
         $intervals[] = [$begin, $end];
         return $ret;
     };
-    for ($i = 0, $count = count($results); $i < $count; $i++) {
-        [$len, $s1i, $s2i] = $results[$i];
+    foreach ($results as &$result) {
+        $result = [$result[0], $result[$index]];
     }
+    unset($result);
+    $minus = function ($minus) use (&$results) {
+        foreach ($results as &$result) {
+            $result[1] -= $minus;
+        }
+        unset($result);
+    };
+    $return = [];
+    while ($result = array_shift($results)) {
+        [$len, $pos] = $result;
+        if ($get_int($pos, $pos + $len) > -1) {
+            $minus = 0;
+            $return[] = $_ = substr($string, 0, $pos);
+            $minus += strlen($_);
+            $return[] = $_ = $highlights[0][0];
+            $minus += strlen($_);
+            $return[] = substr($string, $pos, $len);
+            $return[] = $highlights[0][1];
+            $return[] = substr($string, $pos + $len);
+        }
+    }
+    return implode('', $return);
 }
