@@ -1842,6 +1842,9 @@ function quick_blast(array $strings, int $m, ?callable $tokenizer = null): array
             $found[$add[0]][] = $add;
         }
     }
+    if (!$found) {
+        return [];
+    }
     if ($s1_map && $s2_map) {
         $found = array_merge(...$found);
         $get_weight = function ($index, $s, $s_map) {
@@ -1984,6 +1987,8 @@ function highlight_quick_blast_results(
             foreach (array_reverse($add) as $a) {
                 $string[] = $opened[] = $a;
             }
+        } elseif ($opened) {
+            $string[] = $part;
         } elseif (!$i) {
             $string[] = strlen($part) > $context_length + 2 ? '..' . substr($part, -$context_length) : $part;
         } else {
