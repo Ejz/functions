@@ -703,23 +703,23 @@ Crawl recursively a domain.
 #### quick_blast
 
 ```
-array quick_blast(array $strings, int $m)
+array quick_blast(array $strings, int $m, ?callable $tokenizer)
 ```
 
 1-threaded implementation of BLAST algorithm. 
 Supports multiple strings.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1738-L1838)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1739-L1872)
 
 #### highlight_quick_blast_results
 
 ```
-string highlight_quick_blast_results(string $string, array $results, int $context = , array $highlights = )
+string highlight_quick_blast_results(string $string, int $index, array $results, int $context_length = , array $highlights = )
 ```
 
+Easy way to highlight BLAST results.
 
-
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1852-L1898)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1885-L1994)
 
 ### Authors
 
