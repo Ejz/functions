@@ -1730,13 +1730,13 @@ function crawler(array $urls, array $settings = []): array
  * 1-threaded implementation of BLAST algorithm. 
  * Supports multiple strings.
  *
- * @param array     $strings
- * @param int       $m
- * @param ?callable $tokenizer
+ * @param array $strings
+ * @param int   $m
+ * @param mixed $tokenizer
  *
  * @return array
  */
-function quick_blast(array $strings, int $m, ?callable $tokenizer = null): array
+function quick_blast(array $strings, int $m, $tokenizer = null): array
 {
     $c = count($strings);
     if ($c < 2) {
@@ -1797,7 +1797,20 @@ function quick_blast(array $strings, int $m, ?callable $tokenizer = null): array
         return $prev;
     } else {
         [$s1, $s2] = $strings;
-        if ($tokenizer) {
+        if (is_regex($tokenizer)) {
+            $regex = $tokenizer;
+            $tokenizer = function ($s) use ($regex) {
+                preg_match_all($regex, $s, $matches, PREG_OFFSET_CAPTURE);
+                $matches = $matches[0];
+                foreach ($matches as &$match) {
+                    $token = strtolower($match[0]);
+                    $pos = $match[1];
+                    $match = compact('token', 'pos');
+                }
+                return $matches;
+            };
+        }
+        if (is_callable($tokenizer)) {
             $chr = function ($_) { return chr(crc32($_) % 256); };
             $s1_map = $tokenizer($s1);
             $s1 = implode('', array_map($chr, array_values(array_column($s1_map, 'token'))));
@@ -1860,7 +1873,7 @@ function quick_blast(array $strings, int $m, ?callable $tokenizer = null): array
                 }
                 $first = $s_map[$a[$index]];
                 $last = $s_map[$a[$index] + $a[0] - 1];
-                $length = ($last['pos'] - $first['pos']) + $last['length'];
+                $length = ($last['pos'] - $first['pos']) + strlen($last['token']);
                 $cache[$s] = [$weight, $length];
                 return $cache[$s];
             };
