@@ -1847,23 +1847,37 @@ function quick_blast(array $strings, int $m, ?callable $tokenizer = null): array
     }
     if ($s1_map && $s2_map) {
         $found = array_merge(...$found);
-        $get_weight = function ($index, $s, $s_map) {
-            return function ($a) use ($index, $s, $s_map) {
+        $get_wl = function ($index, $s, $s_map) {
+            $cache = [];
+            return function ($a) use ($index, $s, $s_map, &$cache) {
                 $s = substr($s, $a[$index], $a[0]);
-                $w = 0;
-                for ($i = 0, $l = strlen($s); $i < $l; $i++) {
-                    $w += $a[0] * ($s_map[$s[$i]]['weight'] ?? 1);
+                if (isset($cache[$s])) {
+                    return $cache[$s];
                 }
-                return $w;
+                $weight = 0;
+                for ($i = 0; $i < $a[0]; $i++) {
+                    $weight += $s_map[$a[$index] + $i]['weight'] ?? 1;
+                }
+                $first = $s_map[$a[$index]];
+                $last = $s_map[$a[$index] + $a[0] - 1];
+                $length = ($last['pos'] - $first['pos']) + $last['length'];
+                $cache[$s] = [$weight, $length];
+                return $cache[$s];
             };
         };
-        $get_weight_s1 = $get_weight(1, $s1, $s1_map);
-        $get_weight_s2 = $get_weight(2, $s2, $s2_map);
-        usort($found, function ($a, $b) use ($get_weight_s1, $get_weight_s2) {
-            return $get_weight_s1($a) < $get_weight_s2($a);
+        $get_wl_s1 = $get_wl(1, $s1, $s1_map);
+        $get_wl_s2 = $get_wl(2, $s2, $s2_map);
+        usort($found, function ($a, $b) use ($get_wl_s1, $get_wl_s2) {
+            return
+                $get_wl_s1($a)[0] + $get_wl_s2($a)[0] <
+                $get_wl_s1($b)[0] + $get_wl_s2($b)[0]
+            ;
         });
         foreach ($found as &$elem) {
-            $elem[0] = $s1_map[$elem[1]]['length'];
+            $elem[0] = [$get_wl_s1($elem)[1], $get_wl_s2($elem)[1]];
+            if ($elem[0][0] === $elem[0][1]) {
+                $elem[0] = $elem[0][0];
+            }
             $elem[1] = $s1_map[$elem[1]]['pos'];
             $elem[2] = $s2_map[$elem[2]]['pos'];
         }
@@ -1901,13 +1915,18 @@ function highlight_quick_blast_results(
     usort($results, function ($a, $b) {
         return $a[1] > $b[1];
     });
-    $plus = function ($plus, $pos) use (&$results, &$intervals) {
+    $plus = function ($plus, $pos) use (&$results, &$intervals, $index) {
         foreach ($results as &$result) {
             if ($result[1] >= $pos) {
                 $result[1] += $plus;
             }
-            if ($result[1] < $pos && $result[0] + $result[1] > $pos) {
-                $result[0] += $plus;
+            $l = is_array($result[0]) ? $result[0][$index - 1] : $result[0];
+            if ($result[1] < $pos && $l + $result[1] > $pos) {
+                if (is_array($result[0])) {
+                    $result[0][$index - 1] += $plus;
+                } else {
+                    $result[0] += $plus;
+                }
             }
         }
         foreach ($intervals as &$interval) {
@@ -1944,6 +1963,7 @@ function highlight_quick_blast_results(
     };
     while ($result = array_shift($results)) {
         [$len, $pos] = $result;
+        $len = is_array($len) ? $len[$index - 1] : $len;
         $int = $get_int($pos, $pos + $len);
         if (!$int) {
             continue;
