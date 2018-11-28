@@ -1730,12 +1730,13 @@ function crawler(array $urls, array $settings = []): array
  * 1-threaded implementation of BLAST algorithm. 
  * Supports multiple strings.
  *
- * @param array $strings
- * @param int   $m
+ * @param array     $strings
+ * @param int       $m
+ * @param ?callable $tokenizer
  *
  * @return array
  */
-function quick_blast(array $strings, int $m): array
+function quick_blast(array $strings, int $m, ?callable $tokenizer = null): array
 {
     $c = count($strings);
     if ($c < 2) {
@@ -1784,7 +1785,7 @@ function quick_blast(array $strings, int $m): array
         for ($i = 0; $i < $c - 1; $i++) {
             $one = $strings[$i];
             $two = $strings[$i + 1];
-            $current = quick_blast([$one, $two], $m);
+            $current = quick_blast([$one, $two], $m, $tokenizer);
             if (!$current) {
                 return [];
             }
@@ -1796,6 +1797,15 @@ function quick_blast(array $strings, int $m): array
         return $prev;
     } else {
         [$s1, $s2] = $strings;
+        if ($tokenizer) {
+            $chr = function ($_) { return chr(crc32($_) % 256); };
+            $s1_map = $tokenizer($s1);
+            $s1 = implode('', array_map($chr, array_values(array_column($s1_map, 'token'))));
+            $s2_map = $tokenizer($s2);
+            $s2 = implode('', array_map($chr, array_values(array_column($s2_map, 'token'))));
+        } else {
+            $s1_map = $s2_map = null;
+        }
     }
     $l1 = strlen($s1);
     $l2 = strlen($s2);
@@ -1832,20 +1842,43 @@ function quick_blast(array $strings, int $m): array
             $found[$add[0]][] = $add;
         }
     }
-    krsort($found, SORT_NUMERIC);
-    $found = array_merge(...$found);
+    if ($s1_map && $s2_map) {
+        $found = array_merge(...$found);
+        $get_weight = function ($index, $s, $s_map) {
+            return function ($a) use ($index, $s, $s_map) {
+                $s = substr($s, $a[$index], $a[0]);
+                $w = 0;
+                for ($i = 0, $l = strlen($s); $i < $l; $i++) {
+                    $w += $a[0] * ($s_map[$s[$i]]['weight'] ?? 1);
+                }
+                return $w;
+            };
+        };
+        $get_weight_s1 = $get_weight(1, $s1, $s1_map);
+        $get_weight_s2 = $get_weight(2, $s2, $s2_map);
+        usort($found, function ($a, $b) use ($get_weight_s1, $get_weight_s2) {
+            return $get_weight_s1($a) < $get_weight_s2($a);
+        });
+        foreach ($found as &$elem) {
+            $elem[0] = $s1_map[$elem[1]]['length'];
+            $elem[1] = $s1_map[$elem[1]]['pos'];
+            $elem[2] = $s2_map[$elem[2]]['pos'];
+        }
+    } else {
+        krsort($found, SORT_NUMERIC);
+        $found = array_merge(...$found);
+    }
     return $found;
 }
 
 /**
- * @todo
- *
  * Easy way to highlight BLAST results.
  *
  * @param string $string
+ * @param int    $index
  * @param array  $results
- * @param int    $context    (optional)
- * @param array  $highlights (optional)
+ * @param int    $context_length (optional)
+ * @param array  $highlights     (optional)
  *
  * @return string
  */
@@ -1853,46 +1886,109 @@ function highlight_quick_blast_results(
     string $string,
     int $index,
     array $results,
-    int $context = 16,
+    int $context_length = 16,
     array $highlights = [['<em>', '</em>']]
 ): string
 {
-    $get_int = function ($begin, $end) {
-        static $intervals = [];
-        $ret = 0;
-        foreach ($intervals as $interval) {
-            if ($begin >= $interval[0] && $end <= $interval[1]) {
-                return -1;
-            }
-            $is_ok = $end < $interval[0] || $begin > $interval[1];
-            $ret += $is_ok ? 0 : 1;
-        }
-        $intervals[] = [$begin, $end];
-        return $ret;
-    };
+    $intervals = [];
     foreach ($results as &$result) {
         $result = [$result[0], $result[$index]];
     }
     unset($result);
-    $minus = function ($minus) use (&$results) {
+    usort($results, function ($a, $b) {
+        return $a[1] > $b[1];
+    });
+    $plus = function ($plus, $pos) use (&$results, &$intervals) {
         foreach ($results as &$result) {
-            $result[1] -= $minus;
+            if ($result[1] >= $pos) {
+                $result[1] += $plus;
+            }
+            if ($result[1] < $pos && $result[0] + $result[1] > $pos) {
+                $result[0] += $plus;
+            }
+        }
+        foreach ($intervals as &$interval) {
+            if ($interval[0] >= $pos) {
+                $interval[0] += $plus;
+            }
+            if ($interval[1] > $pos) {
+                $interval[1] += $plus;
+            }
         }
         unset($result);
     };
-    $return = [];
+    $get_int = function ($begin, $end) use (&$intervals) {
+        $ret = [0, 0];
+        foreach ($intervals as $interval) {
+            if ($begin >= $interval[0] && $end <= $interval[1]) {
+                return [];
+            }
+            if ($end < $interval[0]) {
+                continue;
+            }
+            if ($begin > $interval[1]) {
+                continue;
+            }
+            if ($end <= $interval[1]) {
+                $ret[1]++;
+            }
+            if ($begin >= $interval[0]) {
+                $ret[0]++;
+            }
+        }
+        $intervals[] = [$begin, $end];
+        return $ret;
+    };
     while ($result = array_shift($results)) {
         [$len, $pos] = $result;
-        if ($get_int($pos, $pos + $len) > -1) {
-            $minus = 0;
-            $return[] = $_ = substr($string, 0, $pos);
-            $minus += strlen($_);
-            $return[] = $_ = $highlights[0][0];
-            $minus += strlen($_);
-            $return[] = substr($string, $pos, $len);
-            $return[] = $highlights[0][1];
-            $return[] = substr($string, $pos + $len);
+        $int = $get_int($pos, $pos + $len);
+        if (!$int) {
+            continue;
+        }
+        $highlight = $highlights[max(...$int)] ?? '';
+        if (!$highlight) {
+            continue;
+        }
+        $string = substr_replace($string, $highlight[0], $pos, 0);
+        $l = strlen($highlight[0]);
+        $plus($l, $pos);
+        $pos += $l;
+        $string = substr_replace($string, $highlight[1], $pos + $len, 0);
+        $l = strlen($highlight[1]);
+        $plus($l, $pos + $len);
+    }
+    $open = $close = [];
+    foreach ($highlights as $highlight) {
+        $open[] = $highlight[0];
+        $close[$highlight[0]] = $highlight[1];
+    }
+    $reg = implode('|', array_map(function ($_) {
+        return preg_quote($_, '~');
+    }, array_merge($open, $close)));
+    $parts = preg_split('~(' . $reg . ')~', $string, -1, PREG_SPLIT_DELIM_CAPTURE);
+    $opened = $string = [];
+    for ($i = 0, $c = count($parts); $i < $c; $i++) {
+        $part = $parts[$i];
+        if (in_array($part, $open)) {
+            $opened[] = $string[] = $part;
+        } elseif (in_array($part, $close)) {
+            $add = [];
+            while ($last = array_pop($opened)) {
+                $string[] = $close[$last];
+                if ($close[$last] != $part) {
+                    $add[] = $last;
+                    continue;
+                }
+                break;
+            }
+            foreach (array_reverse($add) as $a) {
+                $string[] = $opened[] = $a;
+            }
+        } elseif (!$i) {
+            $string[] = strlen($part) > $context_length + 2 ? '..' . substr($part, -$context_length) : $part;
+        } else {
+            $string[] = str_truncate($part, $context_length + 2, $i != $c - 1, '..');
         }
     }
-    return implode('', $return);
+    return implode('', $string);
 }
