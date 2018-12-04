@@ -1795,50 +1795,49 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
             }
         }
         return $prev;
-    } else {
-        [$s1, $s2] = $strings;
-        if (is_regex($tokenizer)) {
-            $regex = $tokenizer;
-            $tokenizer = function ($s) use ($regex) {
-                preg_match_all($regex, $s, $matches, PREG_OFFSET_CAPTURE);
-                $matches = $matches[0];
-                foreach ($matches as &$match) {
-                    $token = strtolower($match[0]);
-                    $pos = $match[1];
-                    $match = compact('token', 'pos');
-                }
-                return $matches;
-            };
-        }
-        if (is_callable($tokenizer)) {
-            $chr = function ($_) { return chr(crc32($_) % 256); };
-            $s1_map = $tokenizer($s1);
-            $s1 = implode('', array_map($chr, array_values(array_column($s1_map, 'token'))));
-            $s2_map = $tokenizer($s2);
-            $s2 = implode('', array_map($chr, array_values(array_column($s2_map, 'token'))));
-        } else {
-            $s1_map = $s2_map = null;
-        }
     }
+    [$s1, $s2] = $strings;
     $l1 = strlen($s1);
     $l2 = strlen($s2);
     if ($l1 < $m || $l2 < $m || $m < 1) {
         return [];
     }
-    $split_s1 = [];
-    for ($i = 0; $i <= $l1 - $m; $i++) {
-        $split_s1[] = substr($s1, $i, $m);
+    $switch_s1_s2 = false;
+    if ($l1 > $l2) {
+        [$s1, $s2] = [$s2, $s1];
+        [$l1, $l2] = [$l2, $l1];
+        $switch_s1_s2 = true;
     }
-    $projection = [];
-    foreach ($split_s1 as $s) {
-        $positions = [];
-        $pos = 0;
-        $len = strlen($s);
-        while (($pos = strpos($s2, $s, $pos)) !== false) {
-            $positions[$pos] = true;
-            $pos = $pos + $len;
-        }
-        $projection[] = $positions;
+    if (is_regex($tokenizer)) {
+        $regex = $tokenizer;
+        $tokenizer = function ($s) use ($regex) {
+            preg_match_all($regex, $s, $matches, PREG_OFFSET_CAPTURE);
+            $matches = $matches[0];
+            foreach ($matches as &$match) {
+                $token = strtolower($match[0]);
+                $pos = $match[1];
+                $match = compact('token', 'pos');
+            }
+            return $matches;
+        };
+    }
+    if (is_callable($tokenizer)) {
+        $chr = function ($_) { return chr(crc32($_) % 256); };
+        $s1_map = $tokenizer($s1);
+        $s1 = implode('', array_map($chr, array_values(array_column($s1_map, 'token'))));
+        $s2_map = $tokenizer($s2);
+        $s2 = implode('', array_map($chr, array_values(array_column($s2_map, 'token'))));
+        $l1 = strlen($s1);
+        $l2 = strlen($s2);
+    } else {
+        $s1_map = $s2_map = null;
+    }
+    $projection = $s2_hash = [];
+    for ($i = 0; $i <= $l2 - $m; $i++) {
+        $s2_hash[substr($s2, $i, $m)][$i] = true;
+    }
+    for ($i = 0; $i <= $l1 - $m; $i++) {
+        $projection[] = $s2_hash[substr($s1, $i, $m)] ?? [];
     }
     $found = [];
     for ($i = 0, $count = count($projection); $i < $count; $i++) {
@@ -1880,23 +1879,34 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         };
         $get_wl_s1 = $get_wl(1, $s1, $s1_map);
         $get_wl_s2 = $get_wl(2, $s2, $s2_map);
-        usort($found, function ($a, $b) use ($get_wl_s1, $get_wl_s2) {
-            return
-                $get_wl_s1($a)[0] + $get_wl_s2($a)[0] <
-                $get_wl_s1($b)[0] + $get_wl_s2($b)[0]
-            ;
-        });
-        foreach ($found as &$elem) {
-            $elem[0] = [$get_wl_s1($elem)[1], $get_wl_s2($elem)[1]];
+        $collect = [];
+        foreach ($found as $elem) {
+            $new = ['wl_s1' => $get_wl_s1($elem), 'wl_s2' => $get_wl_s2($elem)];
+            $elem[0] = [$new['wl_s1'][1], $new['wl_s2'][1]];
             if ($elem[0][0] === $elem[0][1]) {
                 $elem[0] = $elem[0][0];
             }
             $elem[1] = $s1_map[$elem[1]]['pos'];
             $elem[2] = $s2_map[$elem[2]]['pos'];
+            $new['elem'] = $elem;
+            $collect[] = $new;
         }
+        usort($collect, function ($a, $b) {
+            return
+                $a['wl_s1'][0] + $a['wl_s2'][0] <
+                $b['wl_s1'][0] + $b['wl_s2'][0]
+            ;
+        });
+        $found = array_column($collect, 'elem');
     } else {
         krsort($found, SORT_NUMERIC);
         $found = array_merge(...$found);
+    }
+    if ($switch_s1_s2) {
+        $found = array_map(function ($each) {
+            [$each[1], $each[2]] = [$each[2], $each[1]];
+            return $each;
+        }, $found);
     }
     return $found;
 }

@@ -11,6 +11,7 @@ class TestQuickBlast extends TestCase {
         $this->assertEquals([[2, 0, 1]], quick_blast(['BC', 'ABC'], 2));
         $this->assertEquals([], quick_blast(['BC', 'ABC'], 3));
         $this->assertEquals([[4, 0, 7], [3, 0, 1]], quick_blast(['ABCDE', '-ABC---ABCD----'], 3));
+        $this->assertEquals([[4, 7, 0], [3, 1, 0]], quick_blast(['-ABC---ABCD----', 'ABCDE'], 3));
         $this->assertEquals([[1, 0, 1], [1, 0, 3]], quick_blast(['E', '-E-E-'], 1));
         $this->assertEquals([[1, 1, 0], [1, 3, 0]], quick_blast(['-E-E-', 'E'], 1));
     }
