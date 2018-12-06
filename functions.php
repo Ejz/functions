@@ -1857,8 +1857,28 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
     if (!$found) {
         return [];
     }
+    $already = [];
+    krsort($found, SORT_NUMERIC);
+    $found = array_merge(...$found);
+    $found = array_values(array_filter($found, function ($elem) use (&$already) {
+        foreach ($already as $a) {
+            if (
+                (
+                    ($elem[1] >= $a[1]) && ($elem[1] + $elem[0] <= $a[1] + $a[0])
+                )
+                    &&
+                (
+                    ($elem[2] >= $a[2]) && ($elem[2] + $elem[0] <= $a[2] + $a[0])
+                )
+            ) {
+                return false;
+            }
+        }
+        $already[] = $elem;
+        return true;
+    }));
+    unset($already);
     if ($s1_map && $s2_map) {
-        $found = array_merge(...$found);
         $get_wl = function ($index, $s, $s_map) {
             $cache = [];
             return function ($a) use ($index, $s, $s_map, &$cache) {
@@ -1898,9 +1918,6 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
             ;
         });
         $found = array_column($collect, 'elem');
-    } else {
-        krsort($found, SORT_NUMERIC);
-        $found = array_merge(...$found);
     }
     if ($switch_s1_s2) {
         $found = array_map(function ($each) {
