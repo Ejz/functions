@@ -1947,6 +1947,9 @@ function highlight_quick_blast_results(
     array $highlights = [['<em>', '</em>']]
 ): string
 {
+    if ($results === []) {
+        return '';
+    }
     $intervals = [];
     foreach ($results as &$result) {
         $result = [$result[0], $result[$index]];
