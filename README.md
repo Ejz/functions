@@ -719,7 +719,7 @@ string highlight_quick_blast_results(string $string, int $index, array $results,
 
 Easy way to highlight BLAST results.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1942-L2059)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1942-L2062)
 
 ### Authors
 
