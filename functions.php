@@ -1822,21 +1822,27 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         };
     }
     if (is_callable($tokenizer)) {
-        $chr = function ($_) { return chr(crc32($_) % 256); };
+        $chr = function ($_) {
+            $chars = str_split(str_pad(dechex(crc32($_)), 8, '0', STR_PAD_LEFT), 2);
+            return implode(array_map(function ($hex) {
+                return chr(hexdec($hex));
+            }, $chars));
+        };
         $s1_map = $tokenizer($s1);
-        $s1 = implode('', array_map($chr, array_values(array_column($s1_map, 'token'))));
+        $s1 = implode(array_map($chr, array_values(array_column($s1_map, 'token'))));
         $s2_map = $tokenizer($s2);
-        $s2 = implode('', array_map($chr, array_values(array_column($s2_map, 'token'))));
+        $s2 = implode(array_map($chr, array_values(array_column($s2_map, 'token'))));
         $l1 = strlen($s1);
         $l2 = strlen($s2);
+        $m *= 4;
     } else {
         $s1_map = $s2_map = null;
     }
     $projection = $s2_hash = [];
-    for ($i = 0; $i <= $l2 - $m; $i++) {
+    for ($i = 0, $inc = $s1_map ? 4 : 1; $i <= $l2 - $m; $i += $inc) {
         $s2_hash[substr($s2, $i, $m)][$i] = true;
     }
-    for ($i = 0; $i <= $l1 - $m; $i++) {
+    for ($i = 0, $inc = $s1_map ? 4 : 1; $i <= $l1 - $m; $i += $inc) {
         $projection[] = $s2_hash[substr($s1, $i, $m)] ?? [];
     }
     $found = [];
@@ -1878,7 +1884,7 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         return true;
     }));
     unset($already);
-    if ($s1_map && $s2_map) {
+    if ($s1_map) {
         $get_wl = function ($index, $s, $s_map) {
             $cache = [];
             return function ($a) use ($index, $s, $s_map, &$cache) {
@@ -1888,10 +1894,10 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
                 }
                 $weight = 0;
                 for ($i = 0; $i < $a[0]; $i++) {
-                    $weight += $s_map[$a[$index] + $i]['weight'] ?? 1;
+                    $weight += $s_map[($a[$index] + $i) / 4]['weight'] ?? 1;
                 }
-                $first = $s_map[$a[$index]];
-                $last = $s_map[$a[$index] + $a[0] - 1];
+                $first = $s_map[$a[$index] / 4];
+                $last = $s_map[($a[$index] + $a[0] - 1) / 4];
                 $length = ($last['pos'] - $first['pos']) + strlen($last['token']);
                 $cache[$s] = [$weight, $length];
                 return $cache[$s];
@@ -2058,5 +2064,5 @@ function highlight_quick_blast_results(
             $string[] = str_truncate($part, $context_length + 2, $i != $c - 1, '..');
         }
     }
-    return implode('', $string);
+    return implode($string);
 }

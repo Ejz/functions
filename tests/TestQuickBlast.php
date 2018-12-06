@@ -92,7 +92,6 @@ class TestQuickBlast extends TestCase {
                     'token' => strtolower($match[0]),
                     'pos' => $match[1],
                 ];
-                $match['length'] = strlen($match['token']);
             }
             return $matches;
         };
