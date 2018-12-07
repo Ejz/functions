@@ -1814,10 +1814,13 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
             $s = mb_strtolower($s);
             preg_match_all($regex, $s, $matches, PREG_OFFSET_CAPTURE);
             $matches = $matches[0];
-            // $count = array_count_values($matches);
+            $count = [];
+            foreach ($matches as $match) {
+                @ $count[$match[0]]++;
+            }
             foreach ($matches as &$match) {
                 [$token, $pos] = $match;
-                $weight = 1; // $count[$token];
+                @ $weight = 1 / $count[$token];
                 $match = compact('token', 'pos', 'weight');
             }
             return $matches;
