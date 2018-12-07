@@ -1811,12 +1811,14 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
     if (is_regex($tokenizer)) {
         $regex = $tokenizer;
         $tokenizer = function ($s) use ($regex) {
+            $s = mb_strtolower($s);
             preg_match_all($regex, $s, $matches, PREG_OFFSET_CAPTURE);
             $matches = $matches[0];
+            $count = array_count_values($matches);
             foreach ($matches as &$match) {
-                $token = strtolower($match[0]);
-                $pos = $match[1];
-                $match = compact('token', 'pos');
+                [$token, $pos] = $match;
+                $weight = 1 / $count[$token];
+                $match = compact('token', 'pos', 'weight');
             }
             return $matches;
         };
@@ -1869,13 +1871,9 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
     $found = array_values(array_filter($found, function ($elem) use (&$already) {
         foreach ($already as $a) {
             if (
-                (
-                    ($elem[1] >= $a[1]) && ($elem[1] + $elem[0] <= $a[1] + $a[0])
-                )
+                (($elem[1] >= $a[1]) && ($elem[1] + $elem[0] <= $a[1] + $a[0]))
                     &&
-                (
-                    ($elem[2] >= $a[2]) && ($elem[2] + $elem[0] <= $a[2] + $a[0])
-                )
+                (($elem[2] >= $a[2]) && ($elem[2] + $elem[0] <= $a[2] + $a[0]))
             ) {
                 return false;
             }
