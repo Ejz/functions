@@ -1830,14 +1830,12 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
                 return chr(hexdec($hex));
             }, $chars));
         };
-        // $chr = function ($_) { return chr(crc32($_) % 256); };
         $s1_map = $tokenizer($s1);
         $s1 = implode(array_map($chr, array_values(array_column($s1_map, 'token'))));
         $s2_map = $tokenizer($s2);
         $s2 = implode(array_map($chr, array_values(array_column($s2_map, 'token'))));
         $l1 = strlen($s1);
         $l2 = strlen($s2);
-        // $m *= 4;
     } else {
         $s1_map = $s2_map = null;
     }
