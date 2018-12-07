@@ -15,6 +15,10 @@ class TestQuickBlast extends TestCase {
         $this->assertEquals([[1, 0, 1], [1, 0, 3]], quick_blast(['E', '-E-E-'], 1));
         $this->assertEquals([[1, 1, 0], [1, 3, 0]], quick_blast(['-E-E-', 'E'], 1));
         $this->assertEquals([[5, 0, 0]], quick_blast(['ABCBD', 'ABCBD'], 1));
+        $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2)[0]);
+        $this->assertEquals([3, 1, 3], quick_blast(['BAAB', 'ABAAAB'], 2)[1]);
+        $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2, '~.~')[0]);
+        $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2, '~\w~')[0]);
     }
 
     /**
@@ -83,6 +87,16 @@ class TestQuickBlast extends TestCase {
 
     /**
      */
+    public function testQuickBlastBugs() {
+        $results = quick_blast($strings = ['BAAB', 'ABAAAB'], 2);
+        $this->assertEquals(
+            highlight_quick_blast_results($strings[1], 2, $results),
+            highlight_quick_blast_results($strings[1], 2, [$results[0]])
+        );
+    }
+
+    /**
+     */
     public function testQuickBlastTokenizer() {
         $tokenizer = function ($s) {
             preg_match_all('~\w+~', $s, $matches, PREG_OFFSET_CAPTURE);
@@ -99,16 +113,33 @@ class TestQuickBlast extends TestCase {
             [[5, 0, 1]],
             quick_blast(['hello', '!HELLO!'], 1, $tokenizer)
         );
+        $results = quick_blast(['hello world', '!HELLO!!!!!WORLD'], 2, $tokenizer);
+        $this->assertEquals([[[11, 15], 0, 1]], $results);
+        $results = quick_blast(['hello world world', '!HELLO!!!!!WORLD HELLO'], 2, $tokenizer);
+        $this->assertEquals([[[11, 15], 0, 1]], $results);
+        $strings = [
+            'hi world hi hi hi world',
+            'world hi hi world',
+        ];
+        $results = quick_blast($strings, 2, '~\w+~');
         $this->assertEquals(
-            [[[11, 15], 0, 1]],
-            $results = quick_blast([$one = 'hello world', $two = '!HELLO!!!!!WORLD'], 2, $tokenizer)
+            'hi <em>world hi hi</em> hi world',
+            highlight_quick_blast_results($strings[0], 1, $results)
         );
         $this->assertEquals(
-            '<em>hello world</em>',
+            '<em>world hi hi</em> world',
+            highlight_quick_blast_results($strings[1], 2, $results)
+        );
+        $results = quick_blast([
+            $one = 'hello world world',
+            $two = '!HELLO!!!!!WORLD HELLO',
+        ], 2, $tokenizer);
+        $this->assertEquals(
+            '<em>hello world</em> world',
             highlight_quick_blast_results($one, 1, $results)
         );
         $this->assertEquals(
-            '!<em>HELLO!!!!!WORLD</em>',
+            '!<em>HELLO!!!!!WORLD</em> HELLO',
             highlight_quick_blast_results($two, 2, $results)
         );
     }
