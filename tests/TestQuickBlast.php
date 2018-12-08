@@ -142,5 +142,25 @@ class TestQuickBlast extends TestCase {
             '!<em>HELLO!!!!!WORLD</em> HELLO',
             highlight_quick_blast_results($two, 2, $results)
         );
+        $results = quick_blast([
+            'hello world world',
+            '--hello--world--world',
+            '---HELLO---WORLD---HELLO',
+            '----HELLO----WORLD----HELLO',
+        ], 2, $tokenizer);
+        $this->assertEquals(
+            [[[11, 12, 13, 14], 0, 2, 3, 4]],
+            $results
+        );
+        $results = quick_blast([
+            'hello world world',
+            'hello world world',
+            '---HELLO---WORLD---HELLO',
+            '----HELLO----WORLD----HELLO',
+        ], 2, $tokenizer);
+        $this->assertEquals(
+            [[[11, 11, 13, 14], 0, 0, 3, 4]],
+            $results
+        );
     }
 }

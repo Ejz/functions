@@ -1732,16 +1732,46 @@ function crawler(array $urls, array $settings = []): array
  *
  * @param array $strings
  * @param int   $m
- * @param mixed $tokenizer
+ * @param mixed $tokenizer (optional)
  *
  * @return array
  */
 function quick_blast(array $strings, int $m, $tokenizer = null): array
 {
     $c = count($strings);
+    $s_map = [];
     if ($c < 2) {
         return [];
     }
+    $strings = array_values($strings);
+    if (is_regex($tokenizer)) {
+        $regex = $tokenizer;
+        $tokenizer = function ($s) use ($regex) {
+            $s = mb_strtolower($s);
+            preg_match_all($regex, $s, $matches, PREG_OFFSET_CAPTURE);
+            $matches = $matches[0];
+            foreach ($matches as &$match) {
+                [$token, $pos] = $match;
+                $match = compact('token', 'pos');
+            }
+            unset($match);
+            return $matches;
+        };
+    }
+    if (is_callable($tokenizer)) {
+        $chr = function ($token) {
+            $chars = str_split(str_pad(dechex(crc32($token)), 8, '0', STR_PAD_LEFT), 2);
+            return implode(array_map(function ($hex) {
+                return chr(hexdec($hex));
+            }, $chars));
+        };
+        foreach ($strings as &$string) {
+            $s_map[] = $_ = $tokenizer($string);
+            $string = implode(array_map($chr, array_values(array_column($_, 'token'))));
+        }
+        unset($string);
+    }
+    $prev = null;
     $merge = function ($prev, $current) {
         $merged = [];
         foreach ($prev as $p) {
@@ -1779,162 +1809,110 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         }
         return $merged;
     };
-    $strings = array_values($strings);
-    if ($c !== 2) {
-        $prev = null;
-        for ($i = 0; $i < $c - 1; $i++) {
-            $one = $strings[$i];
-            $two = $strings[$i + 1];
-            $current = quick_blast([$one, $two], $m, $tokenizer);
-            if (!$current) {
-                return [];
-            }
-            $prev = $prev === null ? $current : $merge($prev, $current);
-            if (!$prev) {
-                return [];
-            }
-        }
-        return $prev;
-    }
-    [$s1, $s2] = $strings;
-    $l1 = strlen($s1);
-    $l2 = strlen($s2);
-    if ($l1 < $m || $l2 < $m || $m < 1) {
-        return [];
-    }
-    $switch_s1_s2 = false;
-    if ($l1 > $l2) {
-        [$s1, $s2] = [$s2, $s1];
-        [$l1, $l2] = [$l2, $l1];
-        $switch_s1_s2 = true;
-    }
-    if (is_regex($tokenizer)) {
-        $regex = $tokenizer;
-        $tokenizer = function ($s) use ($regex) {
-            $s = mb_strtolower($s);
-            preg_match_all($regex, $s, $matches, PREG_OFFSET_CAPTURE);
-            $matches = $matches[0];
-            $count = [];
-            foreach ($matches as $match) {
-                @ $count[$match[0]]++;
-            }
-            foreach ($matches as &$match) {
-                [$token, $pos] = $match;
-                @ $weight = 1 / $count[$token];
-                $match = compact('token', 'pos', 'weight');
-            }
-            return $matches;
-        };
-    }
-    if (is_callable($tokenizer)) {
-        $chr = function ($_) {
-            $chars = str_split(str_pad(dechex(crc32($_)), 8, '0', STR_PAD_LEFT), 2);
-            return implode(array_map(function ($hex) {
-                return chr(hexdec($hex));
-            }, $chars));
-        };
-        $s1_map = $tokenizer($s1);
-        $s1 = implode(array_map($chr, array_values(array_column($s1_map, 'token'))));
-        $s2_map = $tokenizer($s2);
-        $s2 = implode(array_map($chr, array_values(array_column($s2_map, 'token'))));
+    for ($g = 0; $g < $c - 1; $g++) {
+        [$s1, $s2] = array_slice($strings, $g, 2);
         $l1 = strlen($s1);
         $l2 = strlen($s2);
-    } else {
-        $s1_map = $s2_map = null;
-    }
-    $projection = $s2_hash = [];
-    $step = $s1_map ? 4 : 1;
-    $m *= $step;
-    for ($i = 0; $i <= $l2 - $m; $i += $step) {
-        $s2_hash[substr($s2, $i, $m)][$i / $step] = true;
-    }
-    for ($i = 0; $i <= $l1 - $m; $i += $step) {
-        $projection[] = $s2_hash[substr($s1, $i, $m)] ?? [];
-    }
-    $m /= $step;
-    $found = [];
-    for ($i = 0, $count = count($projection); $i < $count; $i++) {
-        foreach ($projection[$i] as $coord => $_) {
-            $add = [$m, $i, $coord];
-            for ($j = $i + 1, $k = 1; $j < $count; $j++, $k++) {
-                if (isset($projection[$j][$coord + $k])) {
-                    $add[0]++;
-                    unset($projection[$j][$coord + $k]);
-                } else {
-                    break;
-                }
-            }
-            $found[$add[0]][] = $add;
+        if ($l1 < $m || $l2 < $m || $m < 1) {
+            return [];
         }
-    }
-    if (!$found) {
-        return [];
-    }
-    $already = [];
-    krsort($found, SORT_NUMERIC);
-    $found = array_merge(...$found);
-    $found = array_values(array_filter($found, function ($elem) use (&$already) {
-        foreach ($already as $a) {
-            if (
-                (($elem[1] >= $a[1]) && ($elem[1] + $elem[0] <= $a[1] + $a[0]))
-                    &&
-                (($elem[2] >= $a[2]) && ($elem[2] + $elem[0] <= $a[2] + $a[0]))
-            ) {
-                return false;
+        $switch_s1_s2 = false;
+        if ($l1 > $l2) {
+            [$s1, $s2] = [$s2, $s1];
+            [$l1, $l2] = [$l2, $l1];
+            $switch_s1_s2 = true;
+        }
+        $projection = $s2_hash = [];
+        $step = $s_map ? 4 : 1;
+        $m *= $step;
+        for ($i = 0; $i <= $l2 - $m; $i += $step) {
+            $s2_hash[substr($s2, $i, $m)][$i / $step] = true;
+        }
+        for ($i = 0; $i <= $l1 - $m; $i += $step) {
+            $projection[] = $s2_hash[substr($s1, $i, $m)] ?? [];
+        }
+        $m /= $step;
+        $found = [];
+        for ($i = 0, $count = count($projection); $i < $count; $i++) {
+            foreach ($projection[$i] as $coord => $_) {
+                $add = [$m, $i, $coord];
+                for ($j = $i + 1, $k = 1; $j < $count; $j++, $k++) {
+                    if (isset($projection[$j][$coord + $k])) {
+                        $add[0]++;
+                        unset($projection[$j][$coord + $k]);
+                    } else {
+                        break;
+                    }
+                }
+                $found[] = $add;
             }
         }
-        $already[] = $elem;
-        return true;
-    }));
-    unset($already);
-    if ($s1_map) {
-        $get_wl = function ($index, $s, $s_map) {
-            $cache = [];
-            return function ($a) use ($index, $s, $s_map, &$cache) {
-                $s = substr($s, $a[$index], $a[0]);
-                if (isset($cache[$s])) {
-                    return $cache[$s];
+        if (!$found) {
+            return [];
+        }
+        $already = [];
+        $found = array_values(array_filter($found, function ($elem) use (&$already) {
+            foreach ($already as $a) {
+                if (
+                    (($elem[1] >= $a[1]) && ($elem[1] + $elem[0] <= $a[1] + $a[0]))
+                        &&
+                    (($elem[2] >= $a[2]) && ($elem[2] + $elem[0] <= $a[2] + $a[0]))
+                ) {
+                    return false;
                 }
-                $weight = 0;
-                for ($i = 0; $i < $a[0]; $i++) {
-                    $weight += $s_map[$a[$index] + $i]['weight'] ?? 1;
-                }
-                $first = $s_map[$a[$index]];
-                $last = $s_map[$a[$index] + $a[0] - 1];
-                $length = ($last['pos'] - $first['pos']) + strlen($last['token']);
-                $cache[$s] = [$weight, $length];
-                return $cache[$s];
-            };
+            }
+            $already[] = $elem;
+            return true;
+        }));
+        unset($already);
+        if ($switch_s1_s2) {
+            $found = array_map(function ($each) {
+                [$each[1], $each[2]] = [$each[2], $each[1]];
+                return $each;
+            }, $found);
+        }
+        $prev = $prev === null ? $found : $merge($prev, $found);
+        if (!$prev) {
+            return [];
+        }
+    }
+    $found = $prev;
+    if ($s_map) {
+        $get_len = function ($a, $index, $s_map) {
+            $first = $s_map[$a[$index]];
+            $last = $s_map[$a[$index] + $a[0] - 1];
+            $length = ($last['pos'] - $first['pos']) + strlen($last['token']);
+            return $length;
         };
-        $get_wl_s1 = $get_wl(1, $s1, $s1_map);
-        $get_wl_s2 = $get_wl(2, $s2, $s2_map);
-        $collect = [];
-        foreach ($found as $elem) {
-            $new = ['wl_s1' => $get_wl_s1($elem), 'wl_s2' => $get_wl_s2($elem)];
-            $elem[0] = [$new['wl_s1'][1], $new['wl_s2'][1]];
-            if ($elem[0][0] === $elem[0][1]) {
-                $elem[0] = $elem[0][0];
+        foreach ($found as &$elem) {
+            $len = [];
+            for ($i = 1, $c = count($elem); $i < $c; $i++) {
+                $len[] = $get_len($elem, $i, $s_map[$i - 1]);
+                $elem[$i] = $s_map[$i - 1][$elem[$i]]['pos'];
             }
-            $elem[1] = $s1_map[$elem[1]]['pos'];
-            $elem[2] = $s2_map[$elem[2]]['pos'];
-            $new['elem'] = $elem;
-            $collect[] = $new;
+            $min = min($len);
+            $max = max($len);
+            if ($min === $max) {
+                $len = $len[0];
+            }
+            $elem[0] = $len;
         }
-        usort($collect, function ($a, $b) {
-            return
-                $a['wl_s1'][0] + $a['wl_s2'][0] <
-                $b['wl_s1'][0] + $b['wl_s2'][0]
-            ;
-        });
-        $found = array_column($collect, 'elem');
+        unset($elem);
     }
-    if ($switch_s1_s2) {
-        $found = array_map(function ($each) {
-            [$each[1], $each[2]] = [$each[2], $each[1]];
-            return $each;
-        }, $found);
-    }
-    return $found;
+    uasort($found, function ($a, $b) {
+        $c_a = is_array($a[0]) ? max($a[0]) : $a[0];
+        $c_b = is_array($b[0]) ? max($b[0]) : $b[0];
+        if ($c_a != $c_b) {
+            return $c_b - $c_a;
+        }
+        for ($i = 1, $c = count($a); $i < $c; $i++) {
+            if ($a[$i] != $b[$i]) {
+                return $a[$i] - $b[$i];
+            }
+        }
+        return 0;
+    });
+    return array_values($found);
 }
 
 /**
