@@ -1877,6 +1877,19 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         }
     }
     $found = $prev;
+    uasort($found, function ($a, $b) {
+        $c_a = is_array($a[0]) ? max($a[0]) : $a[0];
+        $c_b = is_array($b[0]) ? max($b[0]) : $b[0];
+        if ($c_a != $c_b) {
+            return $c_b - $c_a;
+        }
+        for ($i = 1, $c = count($a); $i < $c; $i++) {
+            if ($a[$i] != $b[$i]) {
+                return $a[$i] - $b[$i];
+            }
+        }
+        return 0;
+    });
     if ($s_map) {
         $get_len = function ($a, $index, $s_map) {
             $first = $s_map[$a[$index]];
@@ -1899,19 +1912,6 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         }
         unset($elem);
     }
-    uasort($found, function ($a, $b) {
-        $c_a = is_array($a[0]) ? max($a[0]) : $a[0];
-        $c_b = is_array($b[0]) ? max($b[0]) : $b[0];
-        if ($c_a != $c_b) {
-            return $c_b - $c_a;
-        }
-        for ($i = 1, $c = count($a); $i < $c; $i++) {
-            if ($a[$i] != $b[$i]) {
-                return $a[$i] - $b[$i];
-            }
-        }
-        return 0;
-    });
     return array_values($found);
 }
 

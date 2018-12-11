@@ -93,6 +93,16 @@ class TestQuickBlast extends TestCase {
             highlight_quick_blast_results($strings[1], 2, $results),
             highlight_quick_blast_results($strings[1], 2, [$results[0]])
         );
+        //
+        $strings = [
+            'A1 A2 A3 CCC B1 ---------- B2',
+            'B1 ---------- B2 DDD A1 A2 A3',
+        ];
+        $results = quick_blast($strings, 2, '~\w+~');
+        $this->assertEquals(
+            [8, 0, 21],
+            $results[0]
+        );
     }
 
     /**
