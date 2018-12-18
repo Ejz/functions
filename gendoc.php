@@ -11,10 +11,14 @@ $matches = $matches[1];
 
 $list = [];
 foreach ($matches as $function) {
-    if (in_array($function, $ignore)) continue;
+    if (in_array($function, $ignore)) {
+        continue;
+    }
     $r = new ReflectionFunction($function);
     $block = $r->getDocComment();
-    if (!$block) continue;
+    if (!$block) {
+        continue;
+    }
     $block = str_replace('*\\/', '*/', $block);
     $doc = $block;
     $doc = preg_replace('~^\s*/\*\*\s*~s', '', $doc);
@@ -22,18 +26,33 @@ foreach ($matches as $function) {
     $doc = preg_replace('~^\s*\* ?~m', '', $doc);
     preg_match_all('~^@param\s+(\S+)\s+(\S+)(.*)~m', $doc, $params, PREG_SET_ORDER);
     preg_match('~^@return\s+(\S+)~m', $doc, $return);
-    $signature = $return[1] . ' ' . $function . '(' . implode(', ', array_map(function ($match) use ($content, $function) {
+    $mapper = function ($match) use ($content, $function) {
         $append = '';
         if (trim($match[3])) {
             preg_match(
-                '~^function\s+' . $function . '\(.*?' . preg_quote($match[2], '~') . '\s*=\s*(\S+?)(\)|,)~m',
+                '~^function\s+' . $function . '\([\s\S]*?' . preg_quote($match[2], '~') . '\s*=\s*(\[(((?>[^\[\]]+)|(?1))*)\])~m',
                 $content,
-                $_
+                $_1
             );
-            $append .= ' = ' . $_[1];
+            preg_match(
+                '~^function\s+' . $function . '\([\s\S]*?' . preg_quote($match[2], '~') . '\s*=\s*(\S+?)(\)|,)~m',
+                $content,
+                $_2
+            );
+            preg_match(
+                '~^function\s+' . $function . '\([\s\S]*?' . preg_quote($match[2], '~') . '\s*=\s*(\S+)~m',
+                $content,
+                $_3
+            );
+            $append .= ' = ' . ($_1[1] ?? ($_2[1] ?? $_3[1]));
         }
         return $match[1] . ' ' . $match[2] . $append;
-    }, $params)) . ')';
+    };
+    $signature = $return[1] . ' ' . $function . '(' . implode(', ', array_map($mapper, $params)) . ')';
+    $signature_nl = $return[1] . ' ' . $function . "(\n    " . implode(",\n    ", array_map($mapper, $params)) . "\n)";
+    if (strlen($signature) > 80) {
+        $signature = $signature_nl;
+    }
     $doc = trim(preg_replace('~^@\w+\s+[\s\S]*~m', '', $doc));
     $list[] = "- [{$function}](#{$function})";
     $pos = strpos($content, "function {$function}(");

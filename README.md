@@ -235,7 +235,12 @@ $str = str_replace_once('foo', 'bar', 'foo foo');
 #### str_truncate
 
 ```
-string str_truncate(string $string, int $length = , bool $center = , string $replacer = )
+string str_truncate(
+    string $string,
+    int $length = 40,
+    bool $center = false,
+    string $replacer = '...'
+)
 ```
 
 Truncate string to certain length (be default 40 chars).
@@ -546,7 +551,12 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 #### xpath
 
 ```
-array|string xpath(DOMNode|string $xml, string $query = '/*', callable|int|null $callback = null, array $flags = [])
+array|string xpath(
+    DOMNode|string $xml,
+    string $query = '/*',
+    callable|int|null $callback = null,
+    array $flags = []
+)
 ```
 
 Wrapper around [DOMXPath](http://php.net/manual/en/class.domxpath.php). 
@@ -714,7 +724,13 @@ Supports multiple strings.
 #### highlight_quick_blast_results
 
 ```
-string highlight_quick_blast_results(string $string, int $index, array $results, int $context_length = , array $highlights = )
+string highlight_quick_blast_results(
+    string $string,
+    int $index,
+    array $results,
+    int $context_length = 16,
+    array $highlights = [['<em>', '</em>']]
+)
 ```
 
 Easy way to highlight BLAST results.
