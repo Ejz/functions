@@ -245,6 +245,9 @@ class TestMisc extends TestCase {
         $this->assertTrue(realurl('../../../text.md', 'path/a/new.md') === '../text.md');
         $this->assertTrue(realurl('a/b', './c') === './a/b');
         $this->assertTrue(realurl('a/b', 'c') === 'a/b');
+        //
+        $this->assertTrue(realurl('//img.com/logo.png') === 'http://img.com/logo.png');
+        $this->assertTrue(realurl('//img.com/logo.png', 'https://img2.com') === 'https://img.com/logo.png');
     }
 
     /**

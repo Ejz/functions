@@ -108,6 +108,8 @@ class TestExtractLinksFromHtml extends TestCase {
         ]);
     }
 
+    /**
+     */
     public function testExtractLinksFromHtmlHash() {
         $html = '
             <html>
@@ -122,6 +124,40 @@ class TestExtractLinksFromHtml extends TestCase {
             'http://site.com/relative/anchor.html' => [
                 'tag' => 'a',
                 'anchor' => 'anchor',
+            ],
+        ]);
+    }
+
+    /**
+     */
+    public function testExtractLinksFromHtmlBugs() {
+        $html = '
+            <html>
+                <body>
+                    <a href="//img.com/logo.png">Logo</a>
+                </body>
+            </html>
+        ';
+        $links = extract_links_from_html($html);
+        $this->assertEquals($links, [
+            'http://img.com/logo.png' => [
+                'tag' => 'a',
+                'anchor' => 'logo',
+            ],
+        ]);
+        //
+        $html = '
+            <html>
+                <body>
+                    <a href=" //img.com/logo.png">Logo</a>
+                </body>
+            </html>
+        ';
+        $links = extract_links_from_html($html);
+        $this->assertEquals($links, [
+            'http://img.com/logo.png' => [
+                'tag' => 'a',
+                'anchor' => 'logo',
             ],
         ]);
     }

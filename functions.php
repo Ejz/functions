@@ -489,8 +489,12 @@ function realurl(string $url, string $relative = ''): string
     $scheme = function ($_) {
         return parse_url($_, PHP_URL_SCHEME);
     };
-    if (host($relative) && host($url) && !$scheme($url)) {
-        $url = ($scheme($relative) ?: 'http') . ':' . $url;
+    if (!$scheme($url) && host($url)) {
+        $s = 'http';
+        if (host($relative) && ($_ = $scheme($relative))) {
+            $s = $_;
+        }
+        $url = $s . ':' . $url;
     }
     $normalize = function ($url) {
         $parse = parse_url($url);
@@ -1546,23 +1550,32 @@ function extract_links_from_html(string $html, string $url = ''): array
         return [];
     }
     $links = [];
-    $base = xpath($html, '//head/base/@href');
-    $tags = 'self::a or self::img or self::script or self::link or self::form';
-    $names = 'name()="src" or name()="href" or name()="link" or name()="action"';
+    $map = [
+        'a' => 'href',
+        'link' => 'href',
+        'img' => 'src',
+        'script' => 'src',
+        'form' => 'action',
+        'iframe' => 'src',
+        'area' => 'href',
+        'source' => 'src',
+        'embed' => 'src',
+        'video' => 'src',
+        'track' => 'src',
+        'object' => 'data',
+    ];
+    [$head, $tail, $glue] = ['self::', '', ' or '];
+    $tags = $head . implode($tail . $glue . $head, array_keys($map)) . $tail;
+    [$head, $tail, $glue] = ['name()="', '"', ' or '];
+    $names = $head . implode($tail . $glue . $head, array_unique(array_values($map))) . $tail;
     $xpath = "//*[{$tags}][./@*[{$names}]]";
+    $base = xpath($html, '//head/base/@href');
     $base = $base ? realurl($base[0], $url) : $url;
-    xpath($html, $xpath, function ($tag) use (&$links, $base) {
-        $map = [
-            'a' => 'href',
-            'link' => 'href',
-            'img' => 'src',
-            'script' => 'src',
-            'form' => 'action',
-        ];
+    xpath($html, $xpath, function ($tag) use (&$links, $base, $map) {
         $is_link = $tag->nodeName == 'link';
         $is_a = $tag->nodeName == 'a';
         $is_form = $tag->nodeName == 'form';
-        $value = $tag->getAttribute($map[$tag->nodeName]);
+        $value = trim($tag->getAttribute($map[$tag->nodeName]));
         if ($value === '') {
             return;
         }
@@ -1588,6 +1601,206 @@ function extract_links_from_html(string $html, string $url = ''): array
         }
     });
     return $links;
+}
+
+/**
+ * Extract all `<meta/>` tags from HTML.
+ *
+ * @param string $html
+ *
+ * @return array
+ */
+function extract_metas_from_html(string $html): array
+{
+    $metas = [];
+    $attrs = ['charset', 'content', 'http-equiv', 'name', 'scheme', 'property'];
+    [$head, $tail, $glue] = ['name()="', '"', ' or '];
+    $names = $head . implode($tail . $glue . $head, $attrs) . $tail;
+    $xpath = "//head/meta[./@*[{$names}]]";
+    xpath($html, $xpath, function ($tag) use (&$metas, $attrs) {
+        $collect = [];
+        foreach ($attrs as $attr) {
+            $value = $tag->getAttribute($attr);
+            if ($value === '') {
+                continue;
+            }
+            $collect[$attr] = $value;
+        }
+        if ($collect) {
+            $metas[] = $collect;
+        }
+    });
+    return $metas;
+}
+
+/**
+ * Extract comments from HTML.
+ *
+ * @param string $html
+ *
+ * @return array
+ */
+function extract_comments_from_html(string $html): array
+{
+    $xpath = '//comment()';
+    $comments = xpath($html, $xpath);
+    $comments = array_map(function ($comment) {
+        $comment = preg_replace('~^<!--\s*|\s*-->$~s', '', $comment);
+        return $comment;
+    }, $comments);
+    $comments = array_values(array_filter($comments, function ($comment) {
+        return $comment !== '';
+    }));
+    return $comments;
+}
+
+/**
+ * Extract scripts from HTML.
+ *
+ * @param string $html
+ *
+ * @return array
+ */
+function extract_scripts_from_html(string $html): array
+{
+    $xpath = '//script/text()';
+    $scripts = xpath($html, $xpath);
+    $scripts = array_map(function ($script) {
+        $script = trim($script);
+        if (strpos($script, $_ = '<![CDATA[') === 0) {
+            $script = substr($script, strlen($_));
+        }
+        if (substr($script, -3) === ']]>') {
+            $script = substr($script, 0, strlen($script) - 3);
+        }
+        $script = trim($script);
+        return $script;
+    }, $scripts);
+    $scripts = array_values(array_filter($scripts, function ($script) {
+        return $script !== '';
+    }));
+    return $scripts;
+}
+
+/**
+ * Extract text values from HTML.
+ *
+ * @param string $html
+ *
+ * @return array
+ */
+function extract_texts_from_html(string $html): array
+{
+    $xpath = '//*[not(self::script or self::style)]/text()';
+    $texts = xpath($html, $xpath);
+    $texts = array_map(function ($text) {
+        $text = trim($text);
+        $text = preg_replace('~\s+~', ' ', $text);
+        return $text;
+    }, $texts);
+    $texts = array_values(array_filter($texts, function ($text) {
+        return $text !== '';
+    }));
+    return $texts;
+}
+
+/**
+ * Extract all `<input/>` tags from HTML.
+ *
+ * @param string $html
+ *
+ * @return array
+ */
+function extract_inputs_from_html(string $html): array
+{
+    $inputs = [];
+    $attrs = ['type', 'name', 'value', 'accept', 'placeholder'];
+    [$head, $tail, $glue] = ['name()="', '"', ' or '];
+    $names = $head . implode($tail . $glue . $head, $attrs) . $tail;
+    $xpath = "//input[./@*[{$names}]]";
+    xpath($html, $xpath, function ($tag) use (&$inputs, $attrs) {
+        $collect = [];
+        foreach ($attrs as $attr) {
+            $value = $tag->getAttribute($attr);
+            if ($value === '') {
+                continue;
+            }
+            $collect[$attr] = $value;
+        }
+        if ($collect) {
+            $inputs[] = $collect;
+        }
+    });
+    return $inputs;
+}
+
+/**
+ * Extract possible keywords from HTML.
+ *
+ * @param string $html
+ * @param array  $tags (optional)
+ *
+ * @return array
+ */
+function extract_keywords_from_html(string $html, array $tags = ['title', 'h1', 'meta']): array
+{
+    $meta_index = array_search('meta', $tags);
+    if ($have_meta = $meta_index !== false) {
+        unset($tags[$meta_index]);
+    }
+    [$head, $tail, $glue] = ['self::', '', ' or '];
+    $tags = $head . implode($tail . $glue . $head, $tags) . $tail;
+    $xpath = "//*[{$tags}]";
+    $keywords = [];
+    xpath($html, $xpath, function ($tag) use (&$keywords) {
+        $text = normalize(latinize($tag->nodeValue), '', true);
+        $keywords[$tag->nodeName][] = $text;
+    });
+    $keywords = array_map(function ($keywords) {
+        return implode(' ', $keywords);
+    }, $keywords);
+    if ($have_meta) {
+        $metas = extract_metas_from_html($html);
+        foreach ($metas as $meta) {
+            if (!in_array($meta['name'] ?? '', ['description', 'keywords'])) {
+                continue;
+            }
+            $keywords['meta'][] = $meta['content'] ?? '';
+        }
+        if (isset($keywords['meta'])) {
+            $keywords['meta'] = normalize(latinize(implode(' ', $keywords['meta'])), '', true);
+            if ($keywords['meta'] === '') {
+                unset($keywords['meta']);
+            }
+        }
+    }
+    return $keywords;
+}
+
+/**
+ * Extract all possible objects from HTML.
+ *
+ * @param string $html
+ * @param string $url  (optional)
+ * @param array  $tags (optional)
+ *
+ * @return array
+ */
+function extract_all_from_html(
+    string $html,
+    string $url = '',
+    array $tags = ['title', 'h1', 'meta']
+): array
+{
+    $all = [];
+    $all['links'] = extract_links_from_html($html, $url);
+    $objects = ['metas', 'comments', 'scripts', 'texts', 'inputs'];
+    foreach ($objects as $object) {
+        $call = 'extract_' . $object . '_from_html';
+        $all[$object] = $call($html);
+    }
+    $all['keywords'] = extract_keywords_from_html($html, $tags);
+    return $all;
 }
 
 /**
