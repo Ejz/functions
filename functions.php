@@ -1945,12 +1945,20 @@ function crawler(array $urls, array $settings = []): array
  *
  * @param array $strings
  * @param int   $m
- * @param mixed $tokenizer (optional)
+ * @param array $settings (optional)
  *
  * @return array
  */
-function quick_blast(array $strings, int $m, $tokenizer = null): array
+function quick_blast(array $strings, int $m, array $settings = []): array
 {
+    $settings = $settings + [
+        'tokenizer' => null,
+        'delimiter' => null,
+        'unique_substrings' => false,
+    ];
+    $tokenizer = $settings['tokenizer'];
+    $delimiter = $settings['delimiter'];
+    $unique_substrings = $settings['unique_substrings'];
     $c = count($strings);
     $s_map = [];
     if ($c < 2) {
@@ -1972,15 +1980,38 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         };
     }
     if (is_callable($tokenizer)) {
-        $chr = function ($token) {
+        $crc32 = function ($token) {
             $chars = str_split(str_pad(dechex(crc32($token)), 8, '0', STR_PAD_LEFT), 2);
             return implode(array_map(function ($hex) {
                 return chr(hexdec($hex));
             }, $chars));
         };
+        $delimiter_len = strlen($delimiter);
         foreach ($strings as &$string) {
-            $s_map[] = $_ = $tokenizer($string);
-            $string = implode(array_map($chr, array_values(array_column($_, 'token'))));
+            $string = $delimiter ? explode($delimiter, $string) : [$string];
+            $map = [];
+            $shift = 0;
+            foreach ($string as &$part) {
+                $tokens = $tokenizer($part);
+                if ($shift > 0) {
+                    foreach ($tokens as &$token) {
+                        $token['pos'] += $shift;
+                    }
+                }
+                unset($token);
+                $map[] = $tokens;
+                foreach ($tokens as &$token) {
+                    $token = $token === "\x00\x00\x00\x00" ? $token : $crc32($token['token']);
+                }
+                unset($token);
+                $shift += strlen($part) + $delimiter_len;
+                $part = implode($tokens);
+                $map[] = [[]];
+            }
+            unset($part);
+            array_pop($map);
+            $s_map[] = array_merge(...$map);
+            $string = implode("\x00\x00\x00\x00", $string);
         }
         unset($string);
     }
@@ -2022,8 +2053,13 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         }
         return $merged;
     };
+    $is_s_map = (bool) $s_map;
     for ($g = 0; $g < $c - 1; $g++) {
         [$s1, $s2] = array_slice($strings, $g, 2);
+        if ($delimiter && !$is_s_map) {
+            $s1 = strtr($s1, $delimiter, "\x00");
+            $s2 = strtr($s2, $delimiter, "\x00");
+        }
         $l1 = strlen($s1);
         $l2 = strlen($s2);
         if ($l1 < $m || $l2 < $m || $m < 1) {
@@ -2036,20 +2072,33 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
             $switch_s1_s2 = true;
         }
         $projection = $s2_hash = [];
-        $step = $s_map ? 4 : 1;
+        $step = $is_s_map ? 4 : 1;
         $m *= $step;
         for ($i = 0; $i <= $l2 - $m; $i += $step) {
             $s2_hash[substr($s2, $i, $m)][$i / $step] = true;
         }
-        for ($i = 0; $i <= $l1 - $m; $i += $step) {
-            $projection[] = $s2_hash[substr($s1, $i, $m)] ?? [];
+        if ($delimiter) {
+            $index = 0;
+            foreach (explode($is_s_map ? "\x00\x00\x00\x00" : "\x00", $s1) as $s) {
+                $old_index = $index;
+                $l = strlen($s);
+                for ($i = 0; $i <= $l - $m; $i += $step) {
+                    $projection[$index++] = $s2_hash[substr($s, $i, $m)] ?? [];
+                }
+                $index += $old_index === $index ? $l + $step : $m / $step;
+            }
+        } else {
+            for ($i = 0; $i <= $l1 - $m; $i += $step) {
+                $projection[] = $s2_hash[substr($s1, $i, $m)] ?? [];
+            }
         }
         $m /= $step;
         $found = [];
-        for ($i = 0, $count = count($projection); $i < $count; $i++) {
-            foreach ($projection[$i] as $coord => $_) {
+        $count = max(array_keys($projection));
+        foreach ($projection as $i => $proj) {
+            foreach ($proj as $coord => $_) {
                 $add = [$m, $i, $coord];
-                for ($j = $i + 1, $k = 1; $j < $count; $j++, $k++) {
+                for ($j = $i + 1, $k = 1; $j <= $count; $j++, $k++) {
                     if (isset($projection[$j][$coord + $k])) {
                         $add[0]++;
                         unset($projection[$j][$coord + $k]);
@@ -2090,6 +2139,20 @@ function quick_blast(array $strings, int $m, $tokenizer = null): array
         }
     }
     $found = $prev;
+    if ($unique_substrings) {
+        $flags = [];
+        foreach ($found as $elem) {
+            if (isset($flags[$_1 = "1-{$elem[0]}-{$elem[1]}"])) {
+                continue;
+            }
+            if (isset($flags[$_2 = "2-{$elem[0]}-{$elem[2]}"])) {
+                continue;
+            }
+            $flags[$_1] = $flags[$_2] = true;
+            $collect[] = $elem;
+        }
+        $found = array_values($collect);
+    }
     uasort($found, function ($a, $b) {
         $c_a = is_array($a[0]) ? max($a[0]) : $a[0];
         $c_b = is_array($b[0]) ? max($b[0]) : $b[0];

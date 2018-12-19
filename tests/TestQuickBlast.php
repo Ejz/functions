@@ -17,8 +17,8 @@ class TestQuickBlast extends TestCase {
         $this->assertEquals([[5, 0, 0]], quick_blast(['ABCBD', 'ABCBD'], 1));
         $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2)[0]);
         $this->assertEquals([3, 1, 3], quick_blast(['BAAB', 'ABAAAB'], 2)[1]);
-        $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2, '~.~')[0]);
-        $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2, '~\w~')[0]);
+        $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2, ['tokenizer' => '~.~'])[0]);
+        $this->assertEquals([3, 0, 1], quick_blast(['BAAB', 'ABAAAB'], 2, ['tokenizer' => '~\w~'])[0]);
     }
 
     /**
@@ -98,11 +98,33 @@ class TestQuickBlast extends TestCase {
             'A1 A2 A3 CCC B1 ---------- B2',
             'B1 ---------- B2 DDD A1 A2 A3',
         ];
-        $results = quick_blast($strings, 2, '~\w+~');
+        $results = quick_blast($strings, 2, ['tokenizer' => '~\w+~']);
         $this->assertEquals(
             [8, 0, 21],
             $results[0]
         );
+    }
+
+    /**
+     */
+    public function testQuickBlastNewFeatures() {
+        $results = quick_blast(['A-A-B', 'B=B=A'], 1, ['unique_substrings' => true]);
+        $this->assertEquals([[1, 0, 4], [1, 4, 0]], $results);
+        //
+        $results = quick_blast(['foo|bar', 'foo|bar'], 1, ['tokenizer' => '~\w+~', 'delimiter' => '|']);
+        $this->assertEquals([[3, 0, 0], [3, 4, 4]], $results);
+        //
+        $results = quick_blast(['foo|bar', 'foo|bar'], 3, ['tokenizer' => '~\w~', 'delimiter' => '|']);
+        $this->assertEquals([[3, 0, 0], [3, 4, 4]], $results);
+        //
+        $results = quick_blast(['foo|bar', 'foo|bar'], 3, ['delimiter' => '|']);
+        $this->assertEquals([[3, 0, 0], [3, 4, 4]], $results);
+        //
+        $results = quick_blast(['|foo|bar|', '|bar|foo|'], 3, ['delimiter' => '|']);
+        $this->assertEquals([[3, 1, 5], [3, 5, 1]], $results);
+        //
+        $results = quick_blast(['|f|foo|b|bar|', '|b|bar|f|foo|'], 3, ['delimiter' => '|']);
+        $this->assertEquals([[3, 3, 9], [3, 9, 3]], $results);
     }
 
     /**
@@ -121,17 +143,17 @@ class TestQuickBlast extends TestCase {
         };
         $this->assertEquals(
             [[5, 0, 1]],
-            quick_blast(['hello', '!HELLO!'], 1, $tokenizer)
+            quick_blast(['hello', '!HELLO!'], 1, compact('tokenizer'))
         );
-        $results = quick_blast(['hello world', '!HELLO!!!!!WORLD'], 2, $tokenizer);
+        $results = quick_blast(['hello world', '!HELLO!!!!!WORLD'], 2, compact('tokenizer'));
         $this->assertEquals([[[11, 15], 0, 1]], $results);
-        $results = quick_blast(['hello world world', '!HELLO!!!!!WORLD HELLO'], 2, $tokenizer);
+        $results = quick_blast(['hello world world', '!HELLO!!!!!WORLD HELLO'], 2, compact('tokenizer'));
         $this->assertEquals([[[11, 15], 0, 1]], $results);
         $strings = [
             'hi world hi hi hi world',
             'world hi hi world',
         ];
-        $results = quick_blast($strings, 2, '~\w+~');
+        $results = quick_blast($strings, 2, ['tokenizer' => '~\w+~']);
         $this->assertEquals(
             'hi <em>world hi hi</em> hi world',
             highlight_quick_blast_results($strings[0], 1, $results)
@@ -143,7 +165,7 @@ class TestQuickBlast extends TestCase {
         $results = quick_blast([
             $one = 'hello world world',
             $two = '!HELLO!!!!!WORLD HELLO',
-        ], 2, $tokenizer);
+        ], 2, compact('tokenizer'));
         $this->assertEquals(
             '<em>hello world</em> world',
             highlight_quick_blast_results($one, 1, $results)
@@ -157,7 +179,7 @@ class TestQuickBlast extends TestCase {
             '--hello--world--world',
             '---HELLO---WORLD---HELLO',
             '----HELLO----WORLD----HELLO',
-        ], 2, $tokenizer);
+        ], 2, compact('tokenizer'));
         $this->assertEquals(
             [[[11, 12, 13, 14], 0, 2, 3, 4]],
             $results
@@ -167,7 +189,7 @@ class TestQuickBlast extends TestCase {
             'hello world world',
             '---HELLO---WORLD---HELLO',
             '----HELLO----WORLD----HELLO',
-        ], 2, $tokenizer);
+        ], 2, compact('tokenizer'));
         $this->assertEquals(
             [[[11, 11, 13, 14], 0, 0, 3, 4]],
             $results
