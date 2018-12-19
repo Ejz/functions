@@ -2057,8 +2057,8 @@ function quick_blast(array $strings, int $m, array $settings = []): array
     for ($g = 0; $g < $c - 1; $g++) {
         [$s1, $s2] = array_slice($strings, $g, 2);
         if ($delimiter && !$is_s_map) {
-            $s1 = strtr($s1, $delimiter, "\x00");
-            $s2 = strtr($s2, $delimiter, "\x00");
+            $s1 = strtr($s1, [$delimiter => "\x00"]);
+            $s2 = strtr($s2, [$delimiter => "\x00"]);
         }
         $l1 = strlen($s1);
         $l2 = strlen($s2);
@@ -2074,23 +2074,28 @@ function quick_blast(array $strings, int $m, array $settings = []): array
         $projection = $s2_hash = [];
         $step = $is_s_map ? 4 : 1;
         $m *= $step;
-        for ($i = 0; $i <= $l2 - $m; $i += $step) {
-            $s2_hash[substr($s2, $i, $m)][$i / $step] = true;
+        $index = 0;
+        $s2 = $delimiter ? explode($is_s_map ? "\x00\x00\x00\x00" : "\x00", $s2) : [$s2];
+        foreach ($s2 as $s) {
+            $old_index = $index;
+            $l = strlen($s);
+            for ($i = 0; $i <= $l - $m; $i += $step) {
+                $s2_hash[substr($s, $i, $m)][$index++] = true;
+            }
+            $index += $old_index === $index ? (($l / $step) + 1) : $m / $step;
         }
-        if ($delimiter) {
-            $index = 0;
-            foreach (explode($is_s_map ? "\x00\x00\x00\x00" : "\x00", $s1) as $s) {
-                $old_index = $index;
-                $l = strlen($s);
-                for ($i = 0; $i <= $l - $m; $i += $step) {
-                    $projection[$index++] = $s2_hash[substr($s, $i, $m)] ?? [];
-                }
-                $index += $old_index === $index ? $l + $step : $m / $step;
+        $index = 0;
+        $s1 = $delimiter ? explode($is_s_map ? "\x00\x00\x00\x00" : "\x00", $s1) : [$s1];
+        foreach ($s1 as $s) {
+            $old_index = $index;
+            $l = strlen($s);
+            for ($i = 0; $i <= $l - $m; $i += $step) {
+                $projection[$index++] = $s2_hash[substr($s, $i, $m)] ?? [];
             }
-        } else {
-            for ($i = 0; $i <= $l1 - $m; $i += $step) {
-                $projection[] = $s2_hash[substr($s1, $i, $m)] ?? [];
-            }
+            $index += $old_index === $index ? (($l / $step) + 1) : $m / $step;
+        }
+        if (!$projection) {
+            return [];
         }
         $m /= $step;
         $found = [];
@@ -2152,6 +2157,7 @@ function quick_blast(array $strings, int $m, array $settings = []): array
             $collect[] = $elem;
         }
         $found = array_values($collect);
+        unset($collect);
     }
     uasort($found, function ($a, $b) {
         $c_a = is_array($a[0]) ? max($a[0]) : $a[0];

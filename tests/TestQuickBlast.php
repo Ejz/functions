@@ -88,6 +88,39 @@ class TestQuickBlast extends TestCase {
     /**
      */
     public function testQuickBlastBugs() {
+        $asd = <<<'ASD'
+    if expr="$SERVER_NAME=/www.site.com/"
+    e
+    ef
+    script src="//www.site.com/path/js/js.autostart.v15.
+    i
+    place9999,(none)
+    U999
+    Google Tag Manager
+    End Google Tag Manager
+    Google Analitics
+    Google Analitics end
+    U999
+    U999
+    [if lt IE 9]>
+    <script>
+ASD;
+        $strings[0] = implode("\n", nsplit($asd));
+        $strings[1] = $strings[0];
+        $settings = ['unique_substrings' => true, 'tokenizer' => '~\w+~', 'delimiter' => "\n"];
+        [$result] = quick_blast($strings, 10, $settings);
+        $sub = substr($strings[0], $result[1], $result[0]);
+        $this->assertEquals("script src=\"//www.site.com/path/js/js.autostart.v15", $sub);
+        //
+        $strings = ["A\nB\nC", "A\nB\nC"];
+        $results = quick_blast($strings, 1, ['delimiter' => "\n", 'tokenizer' => '~\w+~']);
+        $this->assertEquals(
+            [[1, 0, 0], [1, 2, 2], [1, 4, 4]],
+            $results
+        );
+        $results = quick_blast($strings, 3, ['delimiter' => "\n", 'tokenizer' => '~\w+~']);
+        $this->assertEquals([], $results);
+        //
         $results = quick_blast($strings = ['BAAB', 'ABAAAB'], 2);
         $this->assertEquals(
             highlight_quick_blast_results($strings[1], 2, $results),
