@@ -754,36 +754,46 @@ function base32_encode(string $string): string
  */
 function latinize(string $string, bool $ru = false): string
 {
-    static $letters = null;
-    if (is_null($letters)) {
-        $letters = <<<END
-            `İ¡¿ÀàÁáÂâÃãÄäÅåÆæçÇÈèÉéÊêËëÌìÍíÎîÏïÐððÑñÒòÓóÔôÕõöÖØøÙùÚúÛûÜüÝýÞþÿŸāĀĂ
-            'I!?AaAaAaAaAaAaAacCEeEeEeEeIiIiIiIiDdoNnOoOoOoOooOOoUuUuUuUuYyBbyYaAA
-            ăąĄćĆĈĉĊċčČďĎĐđēĒĔĕėĖęĘĘěĚĜĝğĞĠġģĢĤĥĦħĨĩīĪĪĬĭįĮıĴĵķĶĶĸĹĺļĻĽľĿŀłŁńŃņŅňŇ
-            aaAcCCcCccCdDDdeEEeeEeeEeEGggGGggGHhHhIiiiIIiiIiJjkkKkLllLLlLllLnNnNnN
-            ŉŊŋŌōŎŏŐőŒœŔŕŗřŘśŚŜŝşŞšŠŢţťŤŦŧŨũūŪŪŬŭůŮŰűųŲŴŵŶŷźŹżŻžŽƠơƯưǼǽȘșȚțəƏΐάΆέΈ
-            nNnOoOoOoOoRrrrRsSSssSsSTttTTtUuuuUUuuUUuuUWwYyzZzZzZOoUuAaSsTteEiaAeE
-            ήΉίΊΰαΑβΒγΓδΔεΕζΖηΗθΘιΙκΚλΛμΜνΝξΞοΟπΠρΡςσΣτΤυΥφΦχΧωΩϊΪϋΫόΌύΎώΏјЈћЋ
-            hHiIyaAbBgGdDeEzZhH88iIkKlLmMnN33oOpPrRssStTyYfFxXwWiIyYoOyYwWjjcC
-            أبتجحدرزسصضطفقكلمنهوي
-            abtghdrzssdtfkklmnhoy
-            ẀẁẂẃẄẅẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎ
-            WwWwWwAaAaAaAaAaAaAaAaAaAaAaAaEeEeEeEeEeEeEeEeIiIiOoO
-            ỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ–—‘’“”•
-            oOoOoOoOoOoOoOoOoOoOoUuUuUuUuUuUuUuYyYyYyYy--''""-
-END;
-        $letters = nsplit($letters);
-    }
-    $split = function ($_) {
-        return preg_split('/(?<!^)(?!$)/u', $_);
+    $strtr = function ($string, $from, $to) {
+        preg_match_all('/./u', $from, $keys);
+        preg_match_all('/./u', $to, $values);
+        return strtr($string, array_combine($keys[0], $values[0]));
     };
-    $n = count($letters) / 2;
-    for ($i = 0; $i < $n; $i++) {
-        $string = strtr(
-            $string,
-            array_combine($split($letters[$i * 2]), $split($letters[$i * 2 + 1]))
-        );
-    }
+    $string = $strtr(
+        $string,
+        'İ¡¿ÀàÁáÂâÃãÄäÅåÆæçÇÈèÉéÊêËëÌìÍíÎîÏïÐððÑñÒòÓóÔôÕõöÖØøÙùÚúÛûÜüÝýÞþÿŸāĀĂ`',
+        'I!?AaAaAaAaAaAaAacCEeEeEeEeIiIiIiIiDdoNnOoOoOoOooOOoUuUuUuUuYyBbyYaAA\''
+    );
+    $string = $strtr(
+        $string,
+        'ăąĄćĆĈĉĊċčČďĎĐđēĒĔĕėĖęĘĘěĚĜĝğĞĠġģĢĤĥĦħĨĩīĪĪĬĭįĮıĴĵķĶĶĸĹĺļĻĽľĿŀłŁńŃņŅňŇ',
+        'aaAcCCcCccCdDDdeEEeeEeeEeEGggGGggGHhHhIiiiIIiiIiJjkkKkLllLLlLllLnNnNnN'
+    );
+    $string = $strtr(
+        $string,
+        'ŉŊŋŌōŎŏŐőŒœŔŕŗřŘśŚŜŝşŞšŠŢţťŤŦŧŨũūŪŪŬŭůŮŰűųŲŴŵŶŷźŹżŻžŽƠơƯưǼǽȘșȚțəƏΐάΆέΈ',
+        'nNnOoOoOoOoRrrrRsSSssSsSTttTTtUuuuUUuuUUuuUWwYyzZzZzZOoUuAaSsTteEiaAeE'
+    );
+    $string = $strtr(
+        $string,
+        'ήΉίΊΰαΑβΒγΓδΔεΕζΖηΗθΘιΙκΚλΛμΜνΝξΞοΟπΠρΡςσΣτΤυΥφΦχΧωΩϊΪϋΫόΌύΎώΏјЈћЋ',
+        'hHiIyaAbBgGdDeEzZhH88iIkKlLmMnN33oOpPrRssStTyYfFxXwWiIyYoOyYwWjjcC'
+    );
+    $string = $strtr(
+        $string,
+        'أبتجحدرزسصضطفقكلمنهوي',
+        'abtghdrzssdtfkklmnhoy'
+    );
+    $string = $strtr(
+        $string,
+        'ẀẁẂẃẄẅẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎ',
+        'WwWwWwAaAaAaAaAaAaAaAaAaAaAaAaEeEeEeEeEeEeEeEeIiIiOoO'
+    );
+    $string = $strtr(
+        $string,
+        'ỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ–—“”•‘’',
+        'oOoOoOoOoOoOoOoOoOoOoUuUuUuUuUuUuUuYyYyYyYy--""-\'\''
+    );
     $string = strtr($string, [
         'خ' => 'kh', 'ذ' => 'th', 'ش' => 'sh', 'ظ' => 'th',
         'ع' => 'aa', 'غ' => 'gh', 'ψ' => 'ps', 'Ψ' => 'PS',
@@ -2054,7 +2064,9 @@ function quick_blast(array $strings, int $m, array $settings = []): array
         return $merged;
     };
     $is_s_map = (bool) $s_map;
+    $_x0 = $is_s_map ? "\x00\x00\x00\x00" : "\x00";
     for ($g = 0; $g < $c - 1; $g++) {
+        $found = [];
         [$s1, $s2] = array_slice($strings, $g, 2);
         if ($delimiter && !$is_s_map) {
             $s1 = strtr($s1, [$delimiter => "\x00"]);
@@ -2074,8 +2086,40 @@ function quick_blast(array $strings, int $m, array $settings = []): array
         $projection = $s2_hash = [];
         $step = $is_s_map ? 4 : 1;
         $m *= $step;
+        $_s1 = $s1;
+        $_s2 = $s2;
+        $s1 = $delimiter ? explode($_x0, $s1) : [$s1];
+        $s2 = $delimiter ? explode($_x0, $s2) : [$s2];
+        $is_triggered = false;
+        foreach (array_intersect($s1, $s2) as $common) {
+            $len = strlen($common);
+            if ($len < $m) {
+                continue;
+            }
+            $is_triggered = true;
+            while (($pos1 = strpos($_s1, $common)) !== false) {
+                $_s1 = substr_replace(
+                    $_s1,
+                    str_repeat($_x0, $len / $step),
+                    $pos1,
+                    $len
+                );
+                while (($pos2 = strpos($_s2, $common)) !== false) {
+                    $_s2 = substr_replace(
+                        $_s2,
+                        str_repeat($_x0, $len / $step),
+                        $pos2,
+                        $len
+                    );
+                    $found[] = [$len / $step, $pos1 / $step, $pos2 / $step];
+                }
+            }
+        }
+        if ($is_triggered) {
+            $s1 = $delimiter ? explode($_x0, $_s1) : [$_s1];
+            $s2 = $delimiter ? explode($_x0, $_s2) : [$_s2];
+        }
         $index = 0;
-        $s2 = $delimiter ? explode($is_s_map ? "\x00\x00\x00\x00" : "\x00", $s2) : [$s2];
         foreach ($s2 as $s) {
             $old_index = $index;
             $l = strlen($s);
@@ -2085,7 +2129,6 @@ function quick_blast(array $strings, int $m, array $settings = []): array
             $index += $old_index === $index ? (($l / $step) + 1) : $m / $step;
         }
         $index = 0;
-        $s1 = $delimiter ? explode($is_s_map ? "\x00\x00\x00\x00" : "\x00", $s1) : [$s1];
         foreach ($s1 as $s) {
             $old_index = $index;
             $l = strlen($s);
@@ -2094,12 +2137,8 @@ function quick_blast(array $strings, int $m, array $settings = []): array
             }
             $index += $old_index === $index ? (($l / $step) + 1) : $m / $step;
         }
-        if (!$projection) {
-            return [];
-        }
         $m /= $step;
-        $found = [];
-        $count = max(array_keys($projection));
+        @ $count = max(array_keys($projection));
         foreach ($projection as $i => $proj) {
             foreach ($proj as $coord => $_) {
                 $add = [$m, $i, $coord];
@@ -2145,7 +2184,7 @@ function quick_blast(array $strings, int $m, array $settings = []): array
     }
     $found = $prev;
     if ($unique_substrings) {
-        $flags = [];
+        $flags = $collect = [];
         foreach ($found as $elem) {
             if (isset($flags[$_1 = "1-{$elem[0]}-{$elem[1]}"])) {
                 continue;
@@ -2157,7 +2196,7 @@ function quick_blast(array $strings, int $m, array $settings = []): array
             $collect[] = $elem;
         }
         $found = array_values($collect);
-        unset($collect);
+        unset($collect, $flags);
     }
     uasort($found, function ($a, $b) {
         $c_a = is_array($a[0]) ? max($a[0]) : $a[0];

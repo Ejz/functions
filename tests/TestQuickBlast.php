@@ -88,6 +88,11 @@ class TestQuickBlast extends TestCase {
     /**
      */
     public function testQuickBlastBugs() {
+        $strings = ['a|a a|a a a', ' aaa|aa|a'];
+        $settings = ['unique_substrings' => true, 'tokenizer' => '~\w~', 'delimiter' => "|"];
+        $results = quick_blast($strings, 3, $settings);
+        $this->assertEquals([[[5, 3], 6, 1]], $results);
+        //
         $asd = <<<'ASD'
     if expr="$SERVER_NAME=/www.site.com/"
     e
@@ -112,6 +117,7 @@ ASD;
         $sub = substr($strings[0], $result[1], $result[0]);
         $this->assertEquals("script src=\"//www.site.com/path/js/js.autostart.v15", $sub);
         //
+        l1:
         $strings = ["A\nB\nC", "A\nB\nC"];
         $results = quick_blast($strings, 1, ['delimiter' => "\n", 'tokenizer' => '~\w+~']);
         $this->assertEquals(
