@@ -533,7 +533,7 @@ $s = latinize('привет мир', true);
 // $s => 'privet mir'
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L755-L837)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L755-L847)
 
 #### normalize
 
@@ -553,7 +553,7 @@ echo normalize("Привет, мир!", $extra = "", $ru = true);
 // => "привет мир"
 ```
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L858-L871)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L868-L881)
 
 #### xpath
 
@@ -588,7 +588,7 @@ Array
 
 For more examples, please, refer to [xpath.md](docs/xpath.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L930-L1015)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L940-L1025)
 
 #### mb_ucfirst
 
@@ -598,7 +598,7 @@ string mb_ucfirst(string $string)
 
 Upper case of first letter.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1024-L1030)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1034-L1040)
 
 #### sanitize_html
 
@@ -608,7 +608,7 @@ string sanitize_html(string $content)
 
 Satinize HTML output.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1039-L1106)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1049-L1116)
 
 #### readable_to_variable
 
@@ -618,7 +618,7 @@ mixed readable_to_variable(string $input)
 
 Transforms readable form of string to variable.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1115-L1161)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1125-L1171)
 
 #### to_storage
 
@@ -639,7 +639,7 @@ $file = to_storage($tmp, ['shards' => 2, 'ext' => 'txt']);
 
 For more examples, please, refer to [to_storage.md](docs/to_storage.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1184-L1223)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1194-L1233)
 
 #### curl
 
@@ -659,7 +659,7 @@ $title = $title[1];
 
 For more examples, please, refer to [curl.md](docs/curl.md).
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1243-L1389)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1253-L1399)
 
 #### parse_ssh_config
 
@@ -670,7 +670,7 @@ array parse_ssh_config(string $content)
 Parses ~/.ssh/config content. 
 Returns associative array where Host comes as key.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1399-L1417)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1409-L1427)
 
 #### get_domain_info
 
@@ -685,7 +685,7 @@ Returns [
     'tld' => 'bd',
 ] for 'army.mil.bd'
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1431-L1508)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1441-L1518)
 
 #### is_same_suffix_domains
 
@@ -695,7 +695,7 @@ bool is_same_suffix_domains(string $domain1, string $domain2)
 
 Returns true, if domains have same suffix.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1518-L1536)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1528-L1546)
 
 #### extract_links_from_html
 
@@ -705,7 +705,7 @@ array extract_links_from_html(string $html, string $url = '')
 
 Extract links (anchors + resource) from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1546-L1604)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1556-L1614)
 
 #### extract_metas_from_html
 
@@ -715,7 +715,7 @@ array extract_metas_from_html(string $html)
 
 Extract all `<meta/>` tags from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1613-L1634)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1623-L1644)
 
 #### extract_comments_from_html
 
@@ -725,7 +725,7 @@ array extract_comments_from_html(string $html)
 
 Extract comments from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1643-L1655)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1653-L1665)
 
 #### extract_scripts_from_html
 
@@ -735,7 +735,7 @@ array extract_scripts_from_html(string $html)
 
 Extract scripts from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1664-L1683)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1674-L1693)
 
 #### extract_texts_from_html
 
@@ -745,7 +745,7 @@ array extract_texts_from_html(string $html)
 
 Extract text values from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1692-L1705)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1702-L1715)
 
 #### extract_inputs_from_html
 
@@ -755,7 +755,7 @@ array extract_inputs_from_html(string $html)
 
 Extract all `<input/>` tags from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1714-L1735)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1724-L1745)
 
 #### extract_keywords_from_html
 
@@ -768,7 +768,7 @@ array extract_keywords_from_html(
 
 Extract possible keywords from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1745-L1778)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1755-L1788)
 
 #### extract_all_from_html
 
@@ -782,7 +782,7 @@ array extract_all_from_html(
 
 Extract all possible objects from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1789-L1804)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1799-L1814)
 
 #### crawler
 
@@ -792,7 +792,7 @@ array crawler(array $urls, array $settings = [])
 
 Crawl recursively a domain.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1814-L1940)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1824-L1950)
 
 #### quick_blast
 
@@ -803,7 +803,7 @@ array quick_blast(array $strings, int $m, array $settings = [])
 1-threaded implementation of BLAST algorithm. 
 Supports multiple strings.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1952-L2198)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1962-L2237)
 
 #### highlight_quick_blast_results
 
@@ -819,7 +819,7 @@ string highlight_quick_blast_results(
 
 Easy way to highlight BLAST results.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2211-L2328)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2250-L2367)
 
 ### Authors
 
