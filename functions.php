@@ -1706,12 +1706,14 @@ function extract_texts_from_html(string $html): array
     $texts = array_map(function ($text) {
         $text = trim($text);
         $text = preg_replace('~\s+~', ' ', $text);
+        $text = iconv('UTF-8', 'UTF-8//IGNORE', $text);
+        $text = normalize(latinize($text), '', true);
         return $text;
     }, $texts);
     $texts = array_values(array_filter($texts, function ($text) {
         return $text !== '';
     }));
-    return $texts;
+    return array_unique($texts);
 }
 
 /**
