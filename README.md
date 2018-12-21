@@ -745,7 +745,7 @@ array extract_texts_from_html(string $html)
 
 Extract text values from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1702-L1715)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1702-L1717)
 
 #### extract_inputs_from_html
 
@@ -755,7 +755,7 @@ array extract_inputs_from_html(string $html)
 
 Extract all `<input/>` tags from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1724-L1745)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1726-L1747)
 
 #### extract_keywords_from_html
 
@@ -768,7 +768,7 @@ array extract_keywords_from_html(
 
 Extract possible keywords from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1755-L1788)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1757-L1790)
 
 #### extract_all_from_html
 
@@ -782,7 +782,7 @@ array extract_all_from_html(
 
 Extract all possible objects from HTML.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1799-L1814)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1801-L1816)
 
 #### crawler
 
@@ -792,7 +792,7 @@ array crawler(array $urls, array $settings = [])
 
 Crawl recursively a domain.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1824-L1950)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1826-L1952)
 
 #### quick_blast
 
@@ -803,7 +803,7 @@ array quick_blast(array $strings, int $m, array $settings = [])
 1-threaded implementation of BLAST algorithm. 
 Supports multiple strings.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1962-L2241)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1964-L2243)
 
 #### highlight_quick_blast_results
 
@@ -819,7 +819,7 @@ string highlight_quick_blast_results(
 
 Easy way to highlight BLAST results.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2254-L2371)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2256-L2373)
 
 ### Authors
 
