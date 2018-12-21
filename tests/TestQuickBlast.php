@@ -146,6 +146,31 @@ ASD;
 
     /**
      */
+    public function testQuickBlastBugWithSort() {
+        $link1 = 'https://site.com/';
+        $_link1 = 'https://site.com';
+        $link2 = 'https://site.com/blog/path/to/article.html';
+        //
+        [$result1, $result2] = quick_blast([$string = "{$link1}\n{$link2}", $string], 3, [
+            'delimiter' => "\n",
+        ]);
+        $sub1 = substr($string, $result1[1], $result1[0]);
+        $sub2 = substr($string, $result2[1], $result2[0]);
+        $this->assertEquals($sub1, $link2);
+        $this->assertEquals($sub2, $link1);
+        //
+        [$result1, $result2] = quick_blast([$string = "{$link1}\n{$link2}", $string], 3, [
+            'delimiter' => "\n",
+            'tokenizer' => '~\w+~'
+        ]);
+        $sub1 = substr($string, $result1[1], $result1[0]);
+        $sub2 = substr($string, $result2[1], $result2[0]);
+        $this->assertEquals($sub1, $link2);
+        $this->assertEquals($sub2, $_link1);
+    }
+
+    /**
+     */
     public function testQuickBlastNewFeatures() {
         $results = quick_blast(['A-A-B', 'B=B=A'], 1, ['unique_substrings' => true]);
         $this->assertEquals([[1, 0, 4], [1, 4, 0]], $results);

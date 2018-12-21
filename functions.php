@@ -2091,7 +2091,11 @@ function quick_blast(array $strings, int $m, array $settings = []): array
         $s1 = $delimiter ? explode($_x0, $s1) : [$s1];
         $s2 = $delimiter ? explode($_x0, $s2) : [$s2];
         $is_triggered = false;
-        foreach (array_intersect($s1, $s2) as $common) {
+        $intersects = array_intersect($s1, $s2);
+        uasort($intersects, function ($a, $b) {
+            return strlen($b) - strlen($a);
+        });
+        foreach ($intersects as $common) {
             $len = strlen($common);
             if ($len < $m) {
                 continue;
