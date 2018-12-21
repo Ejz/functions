@@ -32,7 +32,7 @@ class TestExtractLinksFromAll extends TestCase {
             ],
             'comments' => ['comment'],
             'scripts' => ['var a = 1;'],
-            'texts' => ['Hello world', 'foo', 'bar', '1', '2', '3'],
+            'texts' => ['hello world', 'foo', 'bar', '1', '2', '3'],
             'keywords' => [
                 'title' => 'hello world',
                 'h1' => 'foo bar 1 2 3',
