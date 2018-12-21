@@ -803,7 +803,7 @@ array quick_blast(array $strings, int $m, array $settings = [])
 1-threaded implementation of BLAST algorithm. 
 Supports multiple strings.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1962-L2237)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1962-L2241)
 
 #### highlight_quick_blast_results
 
@@ -819,7 +819,7 @@ string highlight_quick_blast_results(
 
 Easy way to highlight BLAST results.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2250-L2367)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2254-L2371)
 
 ### Authors
 
