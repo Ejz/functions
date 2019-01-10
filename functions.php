@@ -480,7 +480,7 @@ function prepare_tag_attributes(array $attributes): string
  */
 function realurl(string $url, string $relative = ''): string
 {
-    $starts = ['#', 'javascript:', 'mailto:', 'skype:', 'data:', 'tel:'];
+    $starts = ['#', 'javascript:', 'mailto:', 'skype:', 'data:', 'tel:', 'about:'];
     foreach ($starts as $start) {
         if (strpos($url, $start) === 0) {
             return '';
@@ -1848,6 +1848,7 @@ function crawler(array $urls, array $settings = []): array
         'acceptable_http_codes' => [200, 301, 302],
         'echo' => defined('STDIN'),
         'already' => [],
+        'extract_links_from_html' => 'extract_links_from_html',
     ];
     $settings['level'] = max(0, $settings['level']);
     $settings['level'] = min($settings['level'], 100);
@@ -1912,7 +1913,7 @@ function crawler(array $urls, array $settings = []): array
                 continue;
             }
             @ $return['ok']++;
-            $links = extract_links_from_html($result['content'], $result['url']);
+            $links = $settings['extract_links_from_html']($result['content'], $result['url']);
             $path1 = $get_path($result['url'], true);
             file_put_contents($path1 . '/content.html', $result['content']);
             file_put_contents($path1 . '/header.txt', $result['header']);
