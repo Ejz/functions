@@ -792,7 +792,7 @@ array crawler(array $urls, array $settings = [])
 
 Crawl recursively a domain.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1826-L1952)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1826-L1953)
 
 #### quick_blast
 
@@ -803,7 +803,7 @@ array quick_blast(array $strings, int $m, array $settings = [])
 1-threaded implementation of BLAST algorithm. 
 Supports multiple strings.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1964-L2243)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L1965-L2244)
 
 #### highlight_quick_blast_results
 
@@ -819,7 +819,7 @@ string highlight_quick_blast_results(
 
 Easy way to highlight BLAST results.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2256-L2373)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2257-L2374)
 
 ### Authors
 
