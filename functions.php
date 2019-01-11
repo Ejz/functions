@@ -2372,3 +2372,73 @@ function highlight_quick_blast_results(
     }
     return implode($string);
 }
+
+/**
+ * Easy pattern-based generator of strings.
+ *
+ * @param string $string
+ *
+ * @return Generator
+ */
+function string_generator(string $string): Generator
+{
+    $regex = '~\[(((?>[^\[\]]+)|(?R))*)\]~';
+    $parts = [];
+    $generators = [];
+    while (preg_match($regex, $string, $m)) {
+        [$f, $string] = explode($m[0], $string, 2);
+        $parts[] = $f;
+        $parts[] = [count($generators)];
+        $generators[] = [$m[1], string_generator($m[1])];
+    }
+    $parts[] = $string;
+    $collect = [];
+    for ($i = 0; $i < count($parts); $i++) {
+        $explode = is_array($parts[$i]) ? [$parts[$i]] : explode('|', $parts[$i]);
+        $first = array_shift($explode);
+        $pop = array_pop($collect);
+        if ($pop === null) {
+            $push = $first;
+        } else {
+            is_string($pop) && ($pop = [$pop]);
+            $pop[] = $first;
+            $push = $pop;
+        }
+        array_push($collect, $push);
+        count($explode) && array_push($collect, ...$explode);
+    }
+    $parts = $collect;
+    $finished = [];
+    $implode = function ($parts, $gc, &$end) use (&$generators) {
+        $collect = [];
+        for ($i = 0, $c = count($parts); $i < $c; $i++) {
+            if (!is_array($parts[$i])) {
+                $collect[] = $parts[$i];
+            } else {
+                [$index] = $parts[$i];
+                $collect[] = $generators[$index][1]->current();
+            }
+        }
+        $ok = false;
+        for ($i = 0; $i < $gc; $i++) {
+            $generators[$index - $i][1]->next();
+            if ($generators[$index - $i][1]->valid()) {
+                $ok = true;
+                for ($j = $index - $i + 1; $ok && $j <= $index; $j++) {
+                    $generators[$j][1] = string_generator($generators[$j][0]);
+                }
+                break;
+            }
+        }
+        $end = !$ok;
+        return implode($collect);
+    };
+    foreach ($parts as $part) {
+        !is_array($part) && ($part = [$part]);
+        $gc = count(array_filter($part, 'is_array'));
+        $finished = [];
+        do {
+            yield $implode($part, $gc, $end);
+        } while ($gc && !($gc && $end));
+    }
+}

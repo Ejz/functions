@@ -345,4 +345,28 @@ class TestMisc extends TestCase {
         $this->assertFalse(is_same_suffix_domains('oogle.com', 'google.com'));
         $this->assertTrue(is_same_suffix_domains('army.mil.bd', 'www.go.army.mil.bd'));
     }
+
+    public function testStringGenerator() {
+        $go = function ($str) {
+            return string_generator($str)->current();
+        };
+        $this->assertEquals($go('[]'), '');
+        $this->assertEquals($go('ab'), 'ab');
+        $this->assertEquals($go('[a]'), 'a');
+        $this->assertEquals($go('[a][b]'), 'ab');
+        $this->assertEquals($go('[a[b]][c]'), 'abc');
+        $this->assertTrue(!!preg_match('~^a|b$~', $go('a|b')));
+        $this->assertTrue(!!preg_match('~^a|b|c$~', $go('a|b|c')));
+        $this->assertTrue(!!preg_match('~^a[bc]$~', $go('a[b|c]')));
+        $this->assertTrue(!!preg_match('~^(a|b) (1|2)$~', $go('[a|b] [1|2]')));
+        $regex = '~^(a|b|c) (x|y|z|(X|Y|Z)) (1|2|3)$~';
+        foreach (range(1, 1000) as $_) {
+            $this->assertTrue(!!preg_match($regex, $go('[a|b|c] [x|y|z|[X|Y|Z]] [1|2|3]')));
+        }
+        $res = iterator_to_array(string_generator('[0|1][0|1][0|1]'));
+        $this->assertEquals(
+            ['000', '001', '010', '011', '100', '101', '110', '111'],
+            $res
+        );
+    }
 }
