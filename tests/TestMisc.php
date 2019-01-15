@@ -368,5 +368,8 @@ class TestMisc extends TestCase {
             ['000', '001', '010', '011', '100', '101', '110', '111'],
             $res
         );
+        foreach (string_generator('[1..20].[1..20].[1..20].[1..20]', ['shuffle' => true]) as $ip) {
+            $this->assertTrue(is_ip($ip));
+        }
     }
 }

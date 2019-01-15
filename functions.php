@@ -2377,11 +2377,15 @@ function highlight_quick_blast_results(
  * Easy pattern-based generator of strings.
  *
  * @param string $string
+ * @param array  $settings (optional)
  *
  * @return Generator
  */
-function string_generator(string $string): Generator
+function string_generator(string $string, array $settings = []): Generator
 {
+    $settings = $settings + [
+        'shuffle' => false,
+    ];
     $regex = '~\[(((?>[^\[\]]+)|(?R))*)\]~';
     $parts = [];
     $generators = [];
@@ -2389,7 +2393,7 @@ function string_generator(string $string): Generator
         [$f, $string] = explode($m[0], $string, 2);
         $parts[] = $f;
         $parts[] = [count($generators)];
-        $generators[] = [$m[1], string_generator($m[1])];
+        $generators[] = [$m[1], string_generator($m[1], $settings)];
     }
     $parts[] = $string;
     $collect = [];
@@ -2408,8 +2412,22 @@ function string_generator(string $string): Generator
         count($explode) && array_push($collect, ...$explode);
     }
     $parts = $collect;
+    for ($i = 0, $c = count($parts); $i < $c; $i++) {
+        if (is_array($parts[$i])) {
+            continue;
+        }
+        if (!preg_match('~^(\d+)\.\.(\d+)$~', $parts[$i], $match)) {
+            continue;
+        }
+        $str = implode('|', range($match[1], $match[2]));
+        $parts[$i] = [[count($generators)]];
+        $generators[] = [$str, string_generator($str, $settings)];
+    }
+    if ($settings['shuffle']) {
+        shuffle($parts);
+    }
     $finished = [];
-    $implode = function ($parts, $gc, &$end) use (&$generators) {
+    $implode = function ($parts, $gc, &$end) use (&$generators, $settings) {
         $collect = [];
         for ($i = 0, $c = count($parts); $i < $c; $i++) {
             if (!is_array($parts[$i])) {
@@ -2425,7 +2443,7 @@ function string_generator(string $string): Generator
             if ($generators[$index - $i][1]->valid()) {
                 $ok = true;
                 for ($j = $index - $i + 1; $ok && $j <= $index; $j++) {
-                    $generators[$j][1] = string_generator($generators[$j][0]);
+                    $generators[$j][1] = string_generator($generators[$j][0], $settings);
                 }
                 break;
             }
