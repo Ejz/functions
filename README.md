@@ -825,12 +825,12 @@ Easy way to highlight BLAST results.
 #### string_generator
 
 ```
-Generator string_generator(string $string)
+Generator string_generator(string $string, array $settings = [])
 ```
 
 Easy pattern-based generator of strings.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2383-L2444)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2384-L2462)
 
 ### Authors
 
