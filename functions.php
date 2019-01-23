@@ -119,6 +119,31 @@ function nsplit(string $string): array
 }
 
 /**
+ * Unpack binary string to integer value.
+ *
+ * @param string $raw
+ *
+ * @return int
+ */
+function raw2int(string $raw): int
+{
+    return hexdec(bin2hex($raw));
+}
+
+/**
+ * Pack an integer value to its binary representation.
+ *
+ * @param int $int
+ *
+ * @return string
+ */
+function int2raw(int $int): string
+{
+    $str = dechex($int);
+    return hex2bin(strlen($str) % 2 ? '0' . $str : $str);
+}
+
+/**
  * Return whether or not the provided object is callable.
  *
  * ```php

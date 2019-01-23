@@ -59,6 +59,14 @@ class TestMisc extends TestCase {
 
     /**
      */
+    public function testInt2RawAndViceVersa() {
+        for ($i = 0; $i < 10000; $i++) {
+            $this->assertTrue($i === raw2int(int2raw($i)));
+        }
+    }
+
+    /**
+     */
     public function testMiscNsplit() {
         $this->assertEquals(nsplit('one'), array('one'));
         $this->assertEquals(nsplit('
