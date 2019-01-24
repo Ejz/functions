@@ -852,7 +852,7 @@ Generator string_generator(string $string, array $settings = [])
 
 Easy pattern-based generator of strings.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2409-L2487)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2409-L2522)
 
 ### Authors
 
