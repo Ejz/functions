@@ -2437,6 +2437,42 @@ function string_generator(string $string, array $settings = []): Generator
         count($explode) && array_push($collect, ...$explode);
     }
     $parts = $collect;
+    $xrange = function ($min, $max, $shuffle) {
+        if (!$shuffle) {
+            if ($min > $max) {
+                for ($i = $min; $i >= $max; $i--) {
+                    yield $i;
+                }
+            } else {
+                for ($i = $min; $i <= $max; $i++) {
+                    yield $i;
+                }
+            }
+        } else {
+            $rem = [];
+            $c = $max - $min + 1;
+            $t = 0;
+            do {
+                do {
+                    $rand = mt_rand($min, $max);
+                } while (isset($rem[$rand]));
+                $rem[$rand] = true;
+                if ($rand === $min) {
+                    while (isset($rem[$min])) {
+                        unset($rem[$min]);
+                        $min++;
+                    }
+                } elseif ($rand === $max) {
+                    while (isset($rem[$max])) {
+                        unset($rem[$max]);
+                        $max--;
+                    }
+                }
+                $t++;
+                yield $rand;
+            } while ($t !== $c);
+        }
+    };
     for ($i = 0, $c = count($parts); $i < $c; $i++) {
         if (is_array($parts[$i])) {
             continue;
@@ -2444,9 +2480,8 @@ function string_generator(string $string, array $settings = []): Generator
         if (!preg_match('~^(\d+)\.\.(\d+)$~', $parts[$i], $match)) {
             continue;
         }
-        $str = implode('|', range($match[1], $match[2]));
         $parts[$i] = [[count($generators)]];
-        $generators[] = [$str, string_generator($str, $settings)];
+        $generators[] = ["[{$match[0]}]", $xrange((int) $match[1], (int) $match[2], $settings['shuffle'])];
     }
     if ($settings['shuffle']) {
         shuffle($parts);
