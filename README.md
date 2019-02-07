@@ -70,6 +70,7 @@ PHP 7.1 or above (with cURL library installed).
 - [quick_blast](#quick_blast)
 - [highlight_quick_blast_results](#highlight_quick_blast_results)
 - [string_generator](#string_generator)
+- [simple_lexer](#simple_lexer)
 
 ----
 
@@ -853,6 +854,16 @@ Generator string_generator(string $string, array $settings = [])
 Easy pattern-based generator of strings.
 
 [![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2409-L2522)
+
+#### simple_lexer
+
+```
+array simple_lexer(string $string, array $rules)
+```
+
+Simple lexer...
+
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2532-L2554)
 
 ### Authors
 
