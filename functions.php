@@ -2520,3 +2520,35 @@ function string_generator(string $string, array $settings = []): Generator
         } while ($gc && !($gc && $end));
     }
 }
+
+/**
+ * Simple lexer...
+ *
+ * @param string $string
+ * @param array  $rules
+ *
+ * @return array
+ */
+function simple_lexer(string $string, array $rules): array
+{
+    $tokens = [];
+    while (isset($string[0])) {
+        foreach ($rules as $rule) {
+            $generator = $rule($string);
+            $valid = $generator->valid();
+            if (!$valid) {
+                continue;
+            }
+            do {
+                $tokens[] = [
+                    'token' => $generator->key(),
+                    'value' => $generator->current(),
+                ];
+                $generator->next();
+            } while ($generator->valid());
+            continue 2;
+        }
+        break;
+    }
+    return compact('string', 'tokens');
+}

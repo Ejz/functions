@@ -380,4 +380,33 @@ class TestMisc extends TestCase {
             $this->assertTrue(is_ip($ip));
         }
     }
+
+    public function testSimpleLexer() {
+        $rules = [
+            function (&$string) {
+                if (substr($string, 0, 3) === 'foo') {
+                    $string = substr($string, 3);
+                    yield 'foo' => 'foo';
+                }
+            },
+            function (&$string) {
+                if (substr($string, 0, 3) === 'bar') {
+                    $string = substr($string, 3);
+                    yield 'bar' => 'bar';
+                }
+            },
+        ];
+        $res = simple_lexer('foobar', $rules);
+        $this->assertTrue($res['string'] === '');
+        $tokens = array_column($res['tokens'], 'token');
+        $this->assertTrue($tokens === ['foo', 'bar']);
+        $res = simple_lexer('barfoo', $rules);
+        $this->assertTrue($res['string'] === '');
+        $tokens = array_column($res['tokens'], 'token');
+        $this->assertTrue($tokens === ['bar', 'foo']);
+        $res = simple_lexer('foo ', $rules);
+        $this->assertTrue($res['string'] === ' ');
+        $tokens = array_column($res['tokens'], 'token');
+        $this->assertTrue($tokens === ['foo']);
+    }
 }
