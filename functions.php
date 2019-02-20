@@ -2614,6 +2614,7 @@ function get_rpn(
             $string = substr($string, 1);
             continue;
         }
+        throw new Exception(__FUNCTION__ . ': Invalid syntax!');
     }
     while ($pop = array_pop($operator_stack)) {
         if ($pop === $parentheses[0]) {
