@@ -879,7 +879,7 @@ array get_rpn(
 
 Get Reverse Polish notation for expression.
 
-[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2567-L2625)
+[![to top](totop.png)](#contents) [![view source](viewsource.png)](functions.php#L2567-L2626)
 
 ### Authors
 
