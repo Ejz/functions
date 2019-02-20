@@ -60,6 +60,8 @@ class TestMisc extends TestCase {
     /**
      */
     public function testInt2RawAndViceVersa() {
+        $this->assertTrue(int2raw(4 * 256 + 14, 1) === chr(14));
+        $this->assertTrue(int2raw(4 * 256 + 14, 3) === "\x00\x04\x0E");
         for ($i = 0; $i < 10000; $i++) {
             $this->assertTrue($i === raw2int(int2raw($i)));
         }
@@ -408,5 +410,14 @@ class TestMisc extends TestCase {
         $this->assertTrue($res['string'] === ' ');
         $tokens = array_column($res['tokens'], 'token');
         $this->assertTrue($tokens === ['foo']);
+    }
+
+    public function testGetRpn() {
+        $rpn = get_rpn('1 + 1');
+        $this->assertTrue($rpn === ['1', '1', '+']);
+        $rpn = get_rpn('1 + ((2) * (3))');
+        $this->assertTrue($rpn === ['1', '2', '3', '*', '+']);
+        $rpn = get_rpn('1 + 2 * 3');
+        $this->assertTrue($rpn === ['1', '2', '3', '*', '+']);
     }
 }

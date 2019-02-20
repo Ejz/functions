@@ -134,13 +134,14 @@ function raw2int(string $raw): int
  * Pack an integer value to its binary representation.
  *
  * @param int $int
+ * @param int $bytes (optional)
  *
  * @return string
  */
-function int2raw(int $int): string
+function int2raw(int $int, int $bytes = 4): string
 {
-    $str = dechex($int);
-    return hex2bin(strlen($str) % 2 ? '0' . $str : $str);
+    $bytes *= 2;
+    return hex2bin(sprintf("%0{$bytes}s", substr(dechex($int), -$bytes)));
 }
 
 /**
@@ -2551,4 +2552,74 @@ function simple_lexer(string $string, array $rules): array
         break;
     }
     return compact('string', 'tokens');
+}
+
+/**
+ * Get Reverse Polish notation for expression.
+ *
+ * @param string $string
+ * @param string $values      (optional)
+ * @param array  $operators   (optional)
+ * @param string $parentheses (optional)
+ *
+ * @return array
+ */
+function get_rpn(
+    string $string,
+    string $values = '~\d+(\.\d+)?~',
+    array $operators = ['+' => 1, '-' => 1, '*' => 2, '/' => 2],
+    string $parentheses = '()'
+): array
+{
+    $output_queue = [];
+    $operator_stack = [];
+    while (isset($string[0])) {
+        $string = ltrim($string);
+        if (preg_match($values . 'A', $string, $match)) {
+            $string = substr($string, strlen($match[0]));
+            $output_queue[] = $match[0];
+            continue;
+        }
+        if (@ $precedence = $operators[$string[0]]) {
+            do {
+                $pop = array_pop($operator_stack);
+                if ($pop === null || $pop === $parentheses[0] || $operators[$pop] <= $precedence) {
+                    if ($pop !== null) {
+                        $operator_stack[] = $pop;
+                    }
+                    break;
+                }
+                $output_queue[] = $pop;
+            } while (true);
+            $operator_stack[] = $string[0];
+            $string = substr($string, 1);
+            continue;
+        }
+        if ($string[0] === $parentheses[0]) {
+            $operator_stack[] = $string[0];
+            $string = substr($string, 1);
+            continue;
+        }
+        if ($string[0] === $parentheses[1]) {
+            do {
+                $pop = array_pop($operator_stack);
+                if ($pop === null) {
+                    throw new Exception(__FUNCTION__ . ': Parentheses mismatch!');
+                }
+                if ($pop === $parentheses[0]) {
+                    break;
+                }
+                $output_queue[] = $pop;
+            } while (true);
+            $string = substr($string, 1);
+            continue;
+        }
+    }
+    while ($pop = array_pop($operator_stack)) {
+        if ($pop === $parentheses[0]) {
+            throw new Exception(__FUNCTION__ . ': Parentheses mismatch!');
+        }
+        $output_queue[] = $pop;
+    }
+    return $output_queue;
 }
